@@ -1,4 +1,4 @@
-# Xstory
+# StoryTree
 
 Story-driven development orchestration tool for Claude Code.
 
