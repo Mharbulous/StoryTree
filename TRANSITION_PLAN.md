@@ -491,13 +491,14 @@ cp -r .claude.backup-YYYYMMDD .claude
 
 ### Phase 3: Validate CI
 - [x] Commit and push test branch
-- [ ] Verify CI workflows pass with submodule
-- [ ] Update checkout action if needed (`submodules: recursive`)
+- [x] Verify CI workflows pass with submodule
+- [x] Update checkout action if needed (`submodules: recursive`)
+- [x] **Made StoryTree repository PUBLIC** (required for CI access)
 
 ### Phase 4: Merge and Switch Over
-- [ ] Merge test branch to main
-- [ ] Verify main branch CI passes
-- [ ] Keep backup available
+- [x] Merge test branch to main (PR #407)
+- [x] Verify main branch CI passes
+- [x] Keep backup available (`.claude.backup-20241224`)
 - [ ] Monitor for issues
 
 ### Phase 5: Set Up Listbot
