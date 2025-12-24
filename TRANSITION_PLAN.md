@@ -11,11 +11,44 @@ This document outlines the steps required to complete the transition of StoryTre
 
 ---
 
+## Integration Approach: Git Submodule + Relative Symlinks
+
+StoryTree is integrated into projects using **git submodules** with **relative symlinks**:
+
+```
+YourProject/
+├── StoryTree/              ← Git submodule (https://github.com/Mharbulous/StoryTree)
+├── .claude/
+│   ├── skills/
+│   │   ├── story-tree/     ← Symlink → ../../StoryTree/claude/skills/story-tree
+│   │   └── ...
+│   ├── commands/
+│   │   └── *.md            ← Symlinks → ../../StoryTree/claude/commands/*.md
+│   └── data/
+│       └── story-tree.db   ← Project-specific (NOT symlinked)
+└── .github/
+    └── workflows/          ← Copied from StoryTree (GitHub requires actual files)
+```
+
+### Why This Approach?
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| **Git Submodule** | Portable, version-controlled, works in CI | Requires `--recurse-submodules` on clone |
+| ~~Absolute symlinks~~ | Simple | Breaks on other machines/CI |
+| ~~setup.py installer~~ | Flexible | Extra step, complex CI setup |
+
+### Requirements
+
+- **Windows**: Developer Mode enabled (Settings → Privacy & Security → For developers)
+- **Linux/macOS**: Symlinks work natively
+- **Git clone**: Use `git clone --recurse-submodules` or run `git submodule update --init`
+
+---
+
 ## Critical Requirement: CI Continuity
 
 **The existing StoryTree components in SyncoPaid must continue working throughout this transition.**
-
-SyncoPaid has active CI workflows that depend on the current `.claude/` structure. These workflows must not break during the transition. This means:
 
 1. **No destructive changes** until the new setup is fully validated
 2. **Parallel operation** - old and new must coexist during testing
@@ -52,11 +85,11 @@ Confirm all essential components are present:
 
 ```
 StoryTree/
-├── setup.py             # Installer script
+├── setup.py             # Optional installer script (for database init)
 ├── README.md            # Project documentation
 ├── claude/
-│   ├── skills/          # 11 skills
-│   ├── commands/        # 11 slash commands
+│   ├── skills/          # 10 skills
+│   ├── commands/        # 10 slash commands
 │   ├── scripts/         # Helper scripts
 │   └── data/            # DB initialization scripts
 ├── github/
@@ -67,27 +100,15 @@ StoryTree/
     └── story-tree.db.empty
 ```
 
-### 1.2 Test Setup Script
+### 1.2 Component Inventory
 
-Run the installer in dry-run mode to verify it works:
-
-```bash
-cd C:\Users\Brahm\Git\StoryTree
-python setup.py --help
-python setup.py install --help
-```
-
-### 1.3 Add Missing Components
-
-Check if any components are missing from the initial extraction:
-
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Skills (10) | Verify | Compare with SyncoPaid (story-writing merged into story-building) |
-| Commands (10) | Verify | Compare with SyncoPaid |
-| Scripts (5) | Verify | Compare with SyncoPaid |
-| Workflows (8) | Verify | Compare with SyncoPaid |
-| Xstory GUI | Present | In `gui/` folder |
+| Component | Count | Notes |
+|-----------|-------|-------|
+| Skills | 10 | story-writing merged into story-building |
+| Commands | 10 | Slash commands for Claude Code |
+| Scripts | 5 | Python helper scripts |
+| Workflows | 8 | GitHub Actions workflows |
+| Xstory GUI | 1 | In `gui/` folder |
 
 ---
 
@@ -122,61 +143,112 @@ Components in SyncoPaid that should NOT be replaced (project-specific):
 | `.claude/skills/streamline/` | SyncoPaid-specific skill |
 | `.claude/skills/skill-refinement/` | SyncoPaid-specific skill |
 | `.claude/skills/user-manual-generator/` | SyncoPaid-specific skill |
-| `.claude/skills/execute-story-workflow.md` | Legacy file |
 
-### 2.4 Remove StoryTree-Managed Components (Test Branch Only)
+### 2.4 Remove Old StoryTree Files and Add as Submodule
+
+```bash
+cd C:\Users\Brahm\Git\SyncoPaid
+
+# If StoryTree exists as regular files, remove from index
+git rm -r --cached StoryTree 2>/dev/null
+rm -rf StoryTree
+
+# Add as git submodule
+git submodule add https://github.com/Mharbulous/StoryTree.git StoryTree
+```
+
+### 2.5 Remove StoryTree-Managed Components
 
 Remove components that will be replaced by symlinks:
 
 ```bash
-cd C:\Users\Brahm\Git\SyncoPaid\.claude
-
-# Skills to remove (will be symlinked from StoryTree)
-rm -rf skills/code-sentinel
-rm -rf skills/goal-synthesis
-rm -rf skills/prioritize-story-nodes
-rm -rf skills/story-arborist
-rm -rf skills/story-building
-rm -rf skills/story-execution
-rm -rf skills/story-planning
-rm -rf skills/story-tree
-rm -rf skills/story-verification
-rm -rf skills/story-vetting
-
-# Commands to remove (will be symlinked)
-# List commands managed by StoryTree and remove them
-
-# Scripts to remove (will be symlinked)
-# List scripts managed by StoryTree and remove them
-```
-
-### 2.5 Run StoryTree Installer
-
-```bash
-cd C:\Users\Brahm\Git\StoryTree
-python setup.py install --target C:\Users\Brahm\Git\SyncoPaid
-```
-
-**Important**: Do NOT use `--init-db` flag - SyncoPaid already has a story-tree.db with data.
-
-### 2.6 Verify Local Installation
-
-```bash
 cd C:\Users\Brahm\Git\SyncoPaid\.claude\skills
+rm -rf code-sentinel goal-synthesis prioritize-story-nodes
+rm -rf story-arborist story-building story-execution
+rm -rf story-planning story-tree story-verification story-vetting
 
-# Check that symlinks point to StoryTree
-ls -la story-tree
-# Should show: story-tree -> C:\Users\Brahm\Git\StoryTree\claude\skills\story-tree
+cd C:\Users\Brahm\Git\SyncoPaid\.claude\commands
+rm -f ci-decompose-plan.md ci-execute-plan.md ci-identify-plan.md ci-review-plan.md
+rm -f generate-stories.md plan-story.md review-stories.md
+rm -f synthesize-goals.md vet-stories.md write-story.md
+
+cd C:\Users\Brahm\Git\SyncoPaid\.claude\scripts
+rm -f generate_vision_doc.py insert_story.py prioritize_stories.py
+rm -f story_tree_helpers.py story_workflow.py
+
+cd C:\Users\Brahm\Git\SyncoPaid\.claude\data
+rm -f init_story_tree.py insert_stories.py migrate_normalize_stage_hierarchy.py verify_root.py
 ```
 
-### 2.7 Test Local Functionality
+### 2.6 Create Relative Symlinks
 
-1. Open Claude Code in SyncoPaid
-2. Run `/story-tree` command
-3. Verify skills are accessible
-4. Run Xstory GUI: `python C:\Users\Brahm\Git\StoryTree\gui\xstory.py`
+Use Python to create proper Windows symlinks with relative paths:
 
-### 2.8 If Tests Fail: Rollback
+```python
+# Run from SyncoPaid root directory
+import os
+from pathlib import Path
+
+# Skills
+skills_src = Path('StoryTree/claude/skills')
+skills_dst = Path('.claude/skills')
+for skill in ['code-sentinel', 'goal-synthesis', 'prioritize-story-nodes',
+              'story-arborist', 'story-building', 'story-execution',
+              'story-planning', 'story-tree', 'story-verification', 'story-vetting']:
+    src = skills_src / skill
+    dst = skills_dst / skill
+    rel_path = os.path.relpath(src, skills_dst)
+    os.symlink(rel_path, dst, target_is_directory=True)
+
+# Commands
+cmds_src = Path('StoryTree/claude/commands')
+cmds_dst = Path('.claude/commands')
+for cmd in ['ci-decompose-plan.md', 'ci-execute-plan.md', 'ci-identify-plan.md',
+            'ci-review-plan.md', 'generate-stories.md', 'plan-story.md',
+            'review-stories.md', 'synthesize-goals.md', 'vet-stories.md', 'write-story.md']:
+    src = cmds_src / cmd
+    dst = cmds_dst / cmd
+    rel_path = os.path.relpath(src, cmds_dst)
+    os.symlink(rel_path, dst)
+
+# Scripts
+scripts_src = Path('StoryTree/claude/scripts')
+scripts_dst = Path('.claude/scripts')
+for script in ['generate_vision_doc.py', 'insert_story.py', 'prioritize_stories.py',
+               'story_tree_helpers.py', 'story_workflow.py']:
+    src = scripts_src / script
+    dst = scripts_dst / script
+    rel_path = os.path.relpath(src, scripts_dst)
+    os.symlink(rel_path, dst)
+
+# Data scripts
+data_src = Path('StoryTree/claude/data')
+data_dst = Path('.claude/data')
+for script in ['init_story_tree.py', 'insert_stories.py',
+               'migrate_normalize_stage_hierarchy.py', 'verify_root.py']:
+    src = data_src / script
+    dst = data_dst / script
+    rel_path = os.path.relpath(src, data_dst)
+    os.symlink(rel_path, dst)
+```
+
+### 2.7 Verify Symlinks
+
+```bash
+# Windows
+dir /AL .claude\skills
+
+# Should show:
+# <SYMLINKD>  story-tree [..\..\StoryTree\claude\skills\story-tree]
+```
+
+### 2.8 Test Local Functionality
+
+1. Read a skill file through the symlink
+2. Verify database is accessible (117 story nodes)
+3. Run Xstory GUI: `python StoryTree\gui\xstory.py`
+
+### 2.9 If Tests Fail: Rollback
 
 ```bash
 cd C:\Users\Brahm\Git\SyncoPaid
@@ -190,45 +262,40 @@ git branch -D test/storytree-integration  # Delete failed test branch
 
 **Goal**: Ensure CI workflows pass with the StoryTree integration before merging.
 
-### 3.1 Understand CI Symlink Limitation
+### 3.1 CI Submodule Configuration
 
-**Important**: CI environments cannot use symlinks - they need actual files.
+CI environments need to clone submodules. Update workflows to use:
 
-The StoryTree installer handles this automatically:
-- Local dev: Creates symlinks
-- CI (Linux or `CI=true`): Copies files instead
-
-### 3.2 Prepare Branch for CI Testing
-
-On the test branch, the installer should have copied (not symlinked) the workflows:
-
-```bash
-cd C:\Users\Brahm\Git\SyncoPaid
-git status
-# Should show modified/new files in .github/workflows/
+```yaml
+- uses: actions/checkout@v4
+  with:
+    submodules: recursive
 ```
+
+### 3.2 Symlinks in CI (Linux)
+
+Linux CI environments support symlinks natively. The relative symlinks will work as long as the submodule is checked out.
 
 ### 3.3 Commit and Push Test Branch
 
 ```bash
+cd C:\Users\Brahm\Git\SyncoPaid
 git add .
-git commit -m "test: integrate StoryTree from standalone repo"
+git commit -m "refactor: integrate StoryTree as git submodule with relative symlinks"
 git push -u origin test/storytree-integration
 ```
 
 ### 3.4 Run CI Workflows
 
 1. Open GitHub Actions for SyncoPaid
-2. Manually trigger the story-related workflows on `test/storytree-integration` branch
+2. Manually trigger story-related workflows on `test/storytree-integration` branch
 3. Verify all workflows pass
 
-### 3.5 If CI Fails: Debug Without Affecting Main
+### 3.5 If CI Fails
 
-- Fix issues on the test branch
-- Re-run CI until all workflows pass
-- Main branch remains unaffected throughout
-
-### 3.6 CI Passes: Ready for Phase 4
+- Check that `submodules: recursive` is in checkout action
+- Verify symlinks resolve correctly on Linux
+- Fix issues and re-push
 
 ---
 
@@ -255,23 +322,7 @@ git push
 
 Do NOT delete the backup yet:
 - Keep `.claude.backup-YYYYMMDD` locally
-- Keep `xstory/` directory until Phase 6 confirms stability
-
-### 4.4 Monitor for Issues
-
-- Run the system normally for a few days
-- Watch for any CI failures
-- Test local development workflow
-
-### 4.5 If Issues Arise: Rollback
-
-```bash
-cd C:\Users\Brahm\Git\SyncoPaid
-# Restore backup
-rm -rf .claude
-cp -r .claude.backup-YYYYMMDD .claude
-git checkout -- .  # Discard uncommitted changes
-```
+- Monitor for issues over several days
 
 ---
 
@@ -279,50 +330,33 @@ git checkout -- .  # Discard uncommitted changes
 
 **Prerequisite**: Phase 4 complete and stable for SyncoPaid.
 
-### 5.1 Backup Current Listbot State
+### 5.1 Add StoryTree as Submodule
 
 ```bash
 cd C:\Users\Brahm\Git\Listbot
-cp -r .claude .claude.backup-$(date +%Y%m%d)
+git submodule add https://github.com/Mharbulous/StoryTree.git StoryTree
 ```
 
-### 5.2 Identify Listbot-Specific Components
+### 5.2 Create Relative Symlinks
 
-Preserve these Listbot-specific files:
+Use the same Python script from Phase 2.6.
 
-| Path | Reason |
-|------|--------|
-| `.claude/data/story-tree.db` | Contains Listbot's story data |
-| `.claude/settings.json` | Project settings |
-| `.claude/settings.local.json` | Local settings |
-| Any Listbot-specific skills | Project-specific |
-
-### 5.3 Remove Conflicting Components
-
-Remove any existing story-* skills/commands that will be replaced:
+### 5.3 Initialize Database (New Project)
 
 ```bash
-cd C:\Users\Brahm\Git\Listbot\.claude
-# Remove story-related skills that StoryTree will provide
-# (Check what exists first before removing)
+# Copy empty database template
+cp StoryTree/templates/story-tree.db.empty .claude/data/story-tree.db
 ```
 
-### 5.4 Run StoryTree Installer
+Or use the setup script:
 
 ```bash
-cd C:\Users\Brahm\Git\StoryTree
-python setup.py install --target C:\Users\Brahm\Git\Listbot
+python StoryTree/setup.py init-db --target .
 ```
 
-**Note**: If Listbot doesn't have a story-tree.db yet, use `--init-db`:
+### 5.4 Verify Installation
 
-```bash
-python setup.py install --target C:\Users\Brahm\Git\Listbot --init-db
-```
-
-### 5.5 Verify Installation
-
-Same verification steps as SyncoPaid (Phase 2.6-2.7).
+Same verification steps as SyncoPaid (Phase 2.7-2.8).
 
 ---
 
@@ -330,58 +364,45 @@ Same verification steps as SyncoPaid (Phase 2.6-2.7).
 
 **Prerequisite**: CI has been stable for at least several days after Phase 4.
 
-### 6.1 Remove Extracted xstory Directory
-
-After confirming StoryTree works correctly:
-
-```bash
-cd C:\Users\Brahm\Git\SyncoPaid
-rm -rf xstory/
-```
-
-### 6.2 Remove Backup
+### 6.1 Remove Backup
 
 ```bash
 rm -rf .claude.backup-YYYYMMDD
 ```
 
-### 6.3 Remove Redundant Files
-
-Clean up files that are now managed by StoryTree:
+### 6.2 Remove Legacy Files
 
 ```bash
-# Remove legacy/archived story-related content
-rm -rf .claude/archived-skills/  # If contains story-* skills
+# Remove old xstory directory if it exists
+rm -rf xstory/
+
+# Remove legacy story files
+rm -f .claude/skills/execute-story-workflow.md
 ```
 
-### 6.4 Update .gitignore
+### 6.3 Update CLAUDE.md
 
-Add StoryTree symlinks to .gitignore if they shouldn't be tracked:
-
-```gitignore
-# StoryTree symlinks (managed by StoryTree installer)
-.claude/skills/story-*
-.claude/skills/code-sentinel
-.claude/skills/goal-synthesis
-.claude/skills/prioritize-story-nodes
-.claude/commands/story-*.md
-# etc.
-```
-
-### 6.5 Update CLAUDE.md
-
-Add reference to StoryTree dependency in SyncoPaid's CLAUDE.md:
+Add reference to StoryTree dependency:
 
 ```markdown
 ## Dependencies
 
-This project uses [StoryTree](https://github.com/Mharbulous/StoryTree) for story-driven development.
-StoryTree components are installed via symlinks. To update:
+This project uses [StoryTree](https://github.com/Mharbulous/StoryTree) as a git submodule.
+
+### Cloning This Repo
 
 ```bash
-cd C:\Users\Brahm\Git\StoryTree
-git pull
-python setup.py sync-workflows --target C:\Users\Brahm\Git\SyncoPaid
+git clone --recurse-submodules https://github.com/Mharbulous/SyncoPaid.git
+```
+
+### Updating StoryTree
+
+```bash
+cd StoryTree
+git pull origin main
+cd ..
+git add StoryTree
+git commit -m "chore: update StoryTree submodule"
 ```
 ```
 
@@ -393,27 +414,30 @@ python setup.py sync-workflows --target C:\Users\Brahm\Git\SyncoPaid
 
 Ensure README.md includes:
 
-- [ ] Installation instructions
+- [x] Installation instructions (submodule approach)
 - [ ] Usage guide for new projects
 - [ ] Component overview
 - [ ] Xstory GUI documentation
 
-### 7.2 Create Installation Guide for New Projects
-
-Document the standard process for adding StoryTree to a new project:
+### 7.2 Standard Process for New Projects
 
 ```bash
-# 1. Clone or ensure StoryTree is available locally
-cd C:\Users\Brahm\Git
-git clone https://github.com/Mharbulous/StoryTree.git
-
-# 2. Install to target project
-cd StoryTree
-python setup.py install --target /path/to/new-project --init-db
-
-# 3. Verify installation
+# 1. Add StoryTree as submodule
 cd /path/to/new-project
-ls -la .claude/skills/
+git submodule add https://github.com/Mharbulous/StoryTree.git StoryTree
+
+# 2. Create relative symlinks (use Python script from Phase 2.6)
+python create_symlinks.py
+
+# 3. Initialize database
+cp StoryTree/templates/story-tree.db.empty .claude/data/story-tree.db
+
+# 4. Copy workflows to .github/
+cp -r StoryTree/github/workflows/* .github/workflows/
+cp -r StoryTree/github/actions/* .github/actions/
+
+# 5. Verify
+ls -la .claude/skills/  # Should show symlinks
 ```
 
 ### 7.3 Add GitHub Topics
@@ -429,10 +453,19 @@ gh repo edit --add-topic developer-tools
 
 ## Rollback Procedures
 
-### If StoryTree Installation Fails
+### If Submodule Integration Fails
 
-1. Remove symlinks created by installer
-2. Restore from backup: `cp -r .claude.backup-YYYYMMDD .claude`
+```bash
+cd C:\Users\Brahm\Git\SyncoPaid
+# Remove submodule
+git submodule deinit -f StoryTree
+git rm -f StoryTree
+rm -rf .git/modules/StoryTree
+
+# Restore backup
+rm -rf .claude
+cp -r .claude.backup-YYYYMMDD .claude
+```
 
 ### If Story-Tree.db is Corrupted
 
@@ -445,22 +478,21 @@ gh repo edit --add-topic developer-tools
 ## Checklist Summary
 
 ### Phase 1: Validate Repository
-- [ ] Verify all components present
-- [ ] Test setup.py script
-- [ ] Identify missing components
+- [x] Verify all components present
+- [x] Count: 10 skills, 10 commands, 5 scripts, 8 workflows
 
 ### Phase 2: Test in Isolated Branch
-- [ ] Create test branch in SyncoPaid
-- [ ] Backup .claude folder
-- [ ] Remove StoryTree-managed components
-- [ ] Run installer (without --init-db)
-- [ ] Verify symlinks created
-- [ ] Test local functionality
+- [x] Create test branch in SyncoPaid
+- [x] Backup .claude folder
+- [x] Add StoryTree as git submodule
+- [x] Remove old StoryTree-managed components
+- [x] Create relative symlinks
+- [x] Test local functionality
 
 ### Phase 3: Validate CI
-- [ ] Commit and push test branch
-- [ ] Run CI workflows on test branch
-- [ ] All workflows pass
+- [x] Commit and push test branch
+- [ ] Verify CI workflows pass with submodule
+- [ ] Update checkout action if needed (`submodules: recursive`)
 
 ### Phase 4: Merge and Switch Over
 - [ ] Merge test branch to main
@@ -469,30 +501,29 @@ gh repo edit --add-topic developer-tools
 - [ ] Monitor for issues
 
 ### Phase 5: Set Up Listbot
-- [ ] Backup .claude folder
-- [ ] Identify project-specific components
-- [ ] Remove conflicting components
-- [ ] Run installer
+- [ ] Add StoryTree as submodule
+- [ ] Create relative symlinks
+- [ ] Initialize database
 - [ ] Verify installation
 
 ### Phase 6: Cleanup SyncoPaid
 - [ ] Confirm CI stable for several days
-- [ ] Remove xstory/ directory
 - [ ] Remove backup
-- [ ] Remove redundant files
-- [ ] Update .gitignore
+- [ ] Remove legacy files
 - [ ] Update CLAUDE.md
 
 ### Phase 7: Documentation
 - [ ] Update StoryTree README
-- [ ] Create installation guide
+- [ ] Document standard installation process
 - [ ] Add GitHub topics
 
 ---
 
 ## Notes
 
-- **Symlinks vs Copies**: Local development uses symlinks so changes to StoryTree reflect immediately. CI uses copies.
+- **Relative Symlinks**: All symlinks use relative paths (`../../StoryTree/claude/...`) so they work on any machine after cloning with submodules.
 - **Symlink Bidirectionality**: Edits made through symlinked files modify StoryTree directly. This is intentional (improvements propagate everywhere) but requires awareness. Use `git diff` in StoryTree to review changes before committing.
-- **GitHub Workflows**: Always copied (not symlinked) per GitHub requirements.
-- **story-tree.db**: Never overwritten by installer unless explicitly requested with `--init-db`.
+- **Git Submodule**: Always clone with `--recurse-submodules` or run `git submodule update --init` after cloning.
+- **GitHub Workflows**: Must be copied to `.github/workflows/` (GitHub doesn't follow symlinks).
+- **story-tree.db**: Project-specific data, never symlinked.
+- **Windows Developer Mode**: Required for creating symlinks on Windows.
