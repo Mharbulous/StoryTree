@@ -83,8 +83,8 @@ Check if any components are missing from the initial extraction:
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| Skills (11) | Verify | Compare with SyncoPaid |
-| Commands (11) | Verify | Compare with SyncoPaid |
+| Skills (10) | Verify | Compare with SyncoPaid (story-writing merged into story-building) |
+| Commands (10) | Verify | Compare with SyncoPaid |
 | Scripts (5) | Verify | Compare with SyncoPaid |
 | Workflows (8) | Verify | Compare with SyncoPaid |
 | Xstory GUI | Present | In `gui/` folder |
@@ -142,7 +142,6 @@ rm -rf skills/story-planning
 rm -rf skills/story-tree
 rm -rf skills/story-verification
 rm -rf skills/story-vetting
-rm -rf skills/story-writing
 
 # Commands to remove (will be symlinked)
 # List commands managed by StoryTree and remove them
@@ -494,5 +493,6 @@ gh repo edit --add-topic developer-tools
 ## Notes
 
 - **Symlinks vs Copies**: Local development uses symlinks so changes to StoryTree reflect immediately. CI uses copies.
+- **Symlink Bidirectionality**: Edits made through symlinked files modify StoryTree directly. This is intentional (improvements propagate everywhere) but requires awareness. Use `git diff` in StoryTree to review changes before committing.
 - **GitHub Workflows**: Always copied (not symlinked) per GitHub requirements.
 - **story-tree.db**: Never overwritten by installer unless explicitly requested with `--init-db`.
