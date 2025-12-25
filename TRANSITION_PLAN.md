@@ -415,9 +415,10 @@ git commit -m "chore: update StoryTree submodule"
 Ensure README.md includes:
 
 - [x] Installation instructions (submodule approach)
-- [ ] Usage guide for new projects
-- [ ] Component overview
-- [ ] Xstory GUI documentation
+- [x] Usage guide for new projects
+- [x] Component overview
+- [x] Xstory GUI documentation
+- [x] Troubleshooting section
 
 ### 7.2 Standard Process for New Projects
 
@@ -514,9 +515,9 @@ cp -r .claude.backup-YYYYMMDD .claude
 - [ ] Update CLAUDE.md
 
 ### Phase 7: Documentation
-- [ ] Update StoryTree README
-- [ ] Document standard installation process
-- [ ] Add GitHub topics
+- [x] Update StoryTree README
+- [x] Document standard installation process
+- [x] Add GitHub topics (claude-code, story-driven-development, developer-tools)
 
 ---
 

@@ -4,6 +4,8 @@
 
 **Phases 1-5 complete.** StoryTree is now a git submodule in both SyncoPaid and Listbot with relative symlinks.
 
+**Phase 7 complete.** Documentation updated (2025-12-24).
+
 ## Remaining Work
 
 ### Phase 6: Cleanup SyncoPaid (wait several days for CI stability first)
@@ -11,10 +13,14 @@
 - Remove `xstory/` if exists
 - Update CLAUDE.md with submodule usage docs
 
-### Phase 7: Documentation
-- Update StoryTree README with usage guide
-- Document standard installation process for new projects
-- Add GitHub topics via `gh repo edit --add-topic`
+**Note**: Submodule integration happened on 2025-12-24. Wait until at least 2025-12-27 before cleanup.
+
+### Phase 7: Documentation - COMPLETE
+- [x] Update StoryTree README with usage guide (git submodule approach)
+- [x] Document standard installation process for new projects
+- [x] Add Xstory GUI documentation
+- [x] Add troubleshooting section
+- [x] Add GitHub topics: claude-code, story-driven-development, developer-tools
 
 ## Key Files
 

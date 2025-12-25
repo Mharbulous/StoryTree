@@ -4,111 +4,194 @@ Story-driven development orchestration tool for Claude Code.
 
 ## Overview
 
-Xstory provides a complete workflow for managing development stories in Claude Code projects:
+StoryTree provides a complete workflow for managing development stories in Claude Code projects:
 
 - **Story Tree**: Hierarchical story management with closure table pattern
 - **CI/CD Integration**: GitHub Actions workflows for automated story processing
-- **GUI Tool**: Visual story tree explorer and editor
+- **Xstory GUI**: Visual story tree explorer and editor (PySide6)
 - **Skills & Commands**: Claude Code integration for story operations
 
-## Quick Start
+## Installation
 
-### Installation
+StoryTree is installed as a **git submodule** with **relative symlinks**.
+
+### Adding StoryTree to a New Project
 
 ```bash
-# Install to a project (creates symlinks for local dev)
-python setup.py install --target /path/to/project
+cd /path/to/your-project
 
-# Install with empty story database
-python setup.py install --target /path/to/project --init-db
+# 1. Add StoryTree as a git submodule
+git submodule add https://github.com/Mharbulous/StoryTree.git StoryTree
 
-# CI mode (copies instead of symlinks)
-python setup.py install --target /path/to/project --ci
+# 2. Create relative symlinks (see Symlink Setup below)
+
+# 3. Initialize the story database
+cp StoryTree/templates/story-tree.db.empty .claude/data/story-tree.db
+
+# 4. Copy GitHub workflows (GitHub doesn't follow symlinks)
+cp -r StoryTree/github/workflows/* .github/workflows/
+cp -r StoryTree/github/actions/* .github/actions/
 ```
 
-### Syncing Workflows
-
-After updating xstory, sync workflows to your projects:
+### Cloning a Project with StoryTree
 
 ```bash
-python setup.py sync-workflows --target /path/to/project
+# Clone with submodules
+git clone --recurse-submodules https://github.com/YourOrg/YourProject.git
+
+# Or initialize submodules after cloning
+git clone https://github.com/YourOrg/YourProject.git
+cd YourProject
+git submodule update --init --recursive
+```
+
+### Symlink Setup
+
+Create relative symlinks from your project's `.claude/` directory to StoryTree components. Use Python for cross-platform compatibility:
+
+```python
+# Run from your project root directory
+import os
+from pathlib import Path
+
+# Skills (10 total)
+skills_src = Path('StoryTree/claude/skills')
+skills_dst = Path('.claude/skills')
+for skill in ['code-sentinel', 'goal-synthesis', 'prioritize-story-nodes',
+              'story-arborist', 'story-building', 'story-execution',
+              'story-planning', 'story-tree', 'story-verification', 'story-vetting']:
+    src = skills_src / skill
+    dst = skills_dst / skill
+    rel_path = os.path.relpath(src, skills_dst)
+    os.symlink(rel_path, dst, target_is_directory=True)
+
+# Commands (10 total)
+cmds_src = Path('StoryTree/claude/commands')
+cmds_dst = Path('.claude/commands')
+for cmd in ['ci-decompose-plan.md', 'ci-execute-plan.md', 'ci-identify-plan.md',
+            'ci-review-plan.md', 'generate-stories.md', 'plan-story.md',
+            'review-stories.md', 'synthesize-goals.md', 'vet-stories.md', 'write-story.md']:
+    src = cmds_src / cmd
+    dst = cmds_dst / cmd
+    rel_path = os.path.relpath(src, cmds_dst)
+    os.symlink(rel_path, dst)
+
+# Scripts (5 total)
+scripts_src = Path('StoryTree/claude/scripts')
+scripts_dst = Path('.claude/scripts')
+for script in ['generate_vision_doc.py', 'insert_story.py', 'prioritize_stories.py',
+               'story_tree_helpers.py', 'story_workflow.py']:
+    src = scripts_src / script
+    dst = scripts_dst / script
+    rel_path = os.path.relpath(src, scripts_dst)
+    os.symlink(rel_path, dst)
+
+# Data scripts (4 total)
+data_src = Path('StoryTree/claude/data')
+data_dst = Path('.claude/data')
+for script in ['init_story_tree.py', 'insert_stories.py',
+               'migrate_normalize_stage_hierarchy.py', 'verify_root.py']:
+    src = data_src / script
+    dst = data_dst / script
+    rel_path = os.path.relpath(src, data_dst)
+    os.symlink(rel_path, dst)
+```
+
+**Windows Requirement**: Developer Mode must be enabled (Settings > Privacy & Security > For developers).
+
+### Updating StoryTree
+
+```bash
+cd StoryTree
+git pull origin main
+cd ..
+git add StoryTree
+git commit -m "chore: update StoryTree submodule"
 ```
 
 ## Directory Structure
 
 ```
-xstory/
-├── plugin.json              # Plugin manifest
-├── setup.py                 # Installation script
+StoryTree/
 ├── README.md
-├── gui/                     # Visual story explorer
-│   ├── xstory.py           # Main PySide6 GUI
-│   ├── build.py            # Build script
-│   ├── requirements.txt
-│   └── migrate_*.py        # Database migrations
+├── TRANSITION_PLAN.md       # Migration documentation
+├── setup.py                 # Database initialization only
+├── ai_docs/
+│   └── Handovers/           # Development handover docs
 ├── claude/
-│   ├── skills/             # Claude Code skills
-│   │   ├── story-tree/     # Core tree operations
-│   │   ├── story-planning/ # Story planning workflow
-│   │   ├── story-execution/# Story execution
-│   │   ├── story-building/ # Story building
-│   │   ├── story-writing/  # Story writing
-│   │   ├── story-vetting/  # Story vetting & dedup
+│   ├── skills/              # Claude Code skills (10)
+│   │   ├── story-tree/      # Core tree operations
+│   │   ├── story-planning/  # Story planning workflow
+│   │   ├── story-execution/ # Story execution
+│   │   ├── story-building/  # Story building
+│   │   ├── story-vetting/   # Story vetting & dedup
 │   │   ├── story-verification/
-│   │   ├── story-arborist/ # Tree maintenance
+│   │   ├── story-arborist/  # Tree maintenance
 │   │   ├── prioritize-story-nodes/
-│   │   ├── code-sentinel/  # Code quality
-│   │   └── goal-synthesis/ # Goal management
-│   ├── commands/           # Slash commands
+│   │   ├── code-sentinel/   # Code quality patterns
+│   │   └── goal-synthesis/  # Goal management
+│   ├── commands/            # Slash commands (10)
 │   │   ├── plan-story.md
 │   │   ├── write-story.md
 │   │   ├── generate-stories.md
-│   │   └── ci-*.md         # CI commands
-│   ├── scripts/            # Helper scripts
+│   │   ├── review-stories.md
+│   │   ├── vet-stories.md
+│   │   ├── synthesize-goals.md
+│   │   └── ci-*.md          # CI pipeline commands
+│   ├── scripts/             # Helper scripts (5)
 │   │   ├── story_workflow.py
 │   │   ├── prioritize_stories.py
-│   │   └── story_tree_helpers.py
-│   └── data/               # Data management scripts
+│   │   ├── story_tree_helpers.py
+│   │   ├── insert_story.py
+│   │   └── generate_vision_doc.py
+│   └── data/                # Data management scripts
 │       ├── init_story_tree.py
-│       └── insert_stories.py
+│       ├── insert_stories.py
+│       └── verify_root.py
 ├── github/
-│   ├── workflows/          # GitHub Actions workflows
-│   │   ├── story-tree-orchestrator.yml
-│   │   ├── plan-stories.yml
-│   │   ├── execute-stories.yml
-│   │   ├── build-stories.yml
-│   │   ├── review-stories.yml
-│   │   ├── verify-stories.yml
-│   │   └── activate-stories.yml
-│   └── actions/            # Custom composite actions
-│       ├── update-story-db/
-│       └── post-story-results/
+│   ├── workflows/           # GitHub Actions workflows
+│   └── actions/             # Custom composite actions
+├── gui/                     # Xstory visual explorer
+│   ├── xstory.py            # Main PySide6 GUI
+│   ├── requirements.txt
+│   └── tests/
 └── templates/
-    └── story-tree.db.empty # Empty database template
+    └── story-tree.db.empty  # Empty database template
 ```
 
-## Deployment Modes
+## Project Integration Structure
 
-### Local Development (Symlinks)
+After installation, your project will have:
 
-Default on Windows. Changes to xstory reflect immediately in all linked projects.
-
-```bash
-python setup.py install --target ~/projects/MyApp
+```
+YourProject/
+├── StoryTree/                ← Git submodule
+├── .claude/
+│   ├── skills/
+│   │   ├── story-tree/       ← Symlink → ../../StoryTree/claude/skills/story-tree
+│   │   └── ...               ← (other symlinked skills)
+│   ├── commands/
+│   │   └── *.md              ← Symlinks → ../../StoryTree/claude/commands/*.md
+│   ├── scripts/
+│   │   └── *.py              ← Symlinks → ../../StoryTree/claude/scripts/*.py
+│   └── data/
+│       ├── story-tree.db     ← Project-specific (NOT symlinked)
+│       └── *.py              ← Symlinks → ../../StoryTree/claude/data/*.py
+└── .github/
+    └── workflows/            ← Copied from StoryTree (GitHub requires actual files)
 ```
 
-### CI Mode (Copies)
+## CI Configuration
 
-Default on Linux/CI. Files are copied (not symlinked) for reproducible builds.
+GitHub Actions workflows require explicit submodule checkout:
 
-```bash
-python setup.py install --target /app --ci
+```yaml
+- uses: actions/checkout@v4
+  with:
+    submodules: recursive
 ```
 
-To force symlinks on Linux:
-```bash
-FORCE_SYMLINKS=1 python setup.py install --target ~/projects/MyApp
-```
+**Note**: StoryTree must be a **public** repository for GitHub Actions to clone it.
 
 ## Database Schema
 
@@ -131,6 +214,78 @@ concept → approved → planned → active → reviewing → verifying → impl
 ```
 
 Stories can be held (queued, pending, blocked, etc.) or disposed (rejected, archived, etc.) at any stage.
+
+## Xstory GUI
+
+Xstory is a visual story tree explorer built with PySide6 (Qt for Python).
+
+### Running Xstory
+
+```bash
+# Install dependencies
+pip install -r StoryTree/gui/requirements.txt
+
+# Run the GUI (from project root)
+python StoryTree/gui/xstory.py
+
+# Or specify a database path
+python StoryTree/gui/xstory.py --db .claude/data/story-tree.db
+```
+
+### Features
+
+- Visual tree navigation with expand/collapse
+- Story node editing (title, description, stage, hold/dispose status)
+- Stage progression tracking
+- Parent-child relationship management
+- Database integrity verification
+
+### Building Standalone Executable
+
+```bash
+cd StoryTree/gui
+python build.py
+```
+
+## Troubleshooting
+
+### Symlinks Appear as Text Files (Windows)
+
+After a fresh clone, symlinks may appear as text files containing the target path.
+
+**Fix**: Recreate symlinks using the Python script in the Installation section. Requires Developer Mode enabled.
+
+### "Permission denied" Creating Symlinks
+
+**Windows**: Enable Developer Mode (Settings > Privacy & Security > For developers).
+
+**Linux/macOS**: Should work natively. Check directory permissions.
+
+### Submodule Not Cloned
+
+If the `StoryTree/` directory is empty:
+
+```bash
+git submodule update --init --recursive
+```
+
+### CI Can't Access Submodule
+
+Ensure:
+1. StoryTree repository is **public**
+2. Checkout action uses `submodules: recursive`:
+   ```yaml
+   - uses: actions/checkout@v4
+     with:
+       submodules: recursive
+   ```
+
+### Database Errors
+
+If story-tree.db is corrupted:
+1. Run Xstory GUI to diagnose
+2. Check for backups in `.claude/data/`
+3. Last resort: `cp StoryTree/templates/story-tree.db.empty .claude/data/story-tree.db`
 
 ## License
 
