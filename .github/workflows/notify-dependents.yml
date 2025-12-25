@@ -3,6 +3,8 @@
 # When StoryTree's main branch is updated, this workflow notifies all
 # dependent repositories so they can sync their workflows and submodule.
 #
+# Last updated: 2024-12-25
+#
 # How it works:
 # 1. StoryTree main branch receives a push
 # 2. This workflow sends a repository_dispatch event to each dependent
