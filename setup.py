@@ -16,6 +16,12 @@ Usage:
   python setup.py install --target /path/to/project --ci
   python setup.py sync-workflows --target /path/to/project
   python setup.py init-db --target /path/to/project
+
+Dependent Management:
+  python setup.py register --target /path/to/project [--name ProjectName]
+  python setup.py unregister --target /path/to/project
+  python setup.py list-dependents
+  python setup.py update-all
 """
 
 import argparse
@@ -44,6 +50,28 @@ def is_ci_mode(force_ci: bool = False) -> bool:
 def get_xstory_root() -> Path:
     """Get the root directory of the xstory installation."""
     return Path(__file__).parent.resolve()
+
+
+def get_dependents_file() -> Path:
+    """Get the path to the dependents registry file."""
+    return get_xstory_root() / 'dependents.json'
+
+
+def load_dependents() -> list[dict]:
+    """Load the list of registered dependent projects."""
+    dependents_file = get_dependents_file()
+    if dependents_file.exists():
+        with open(dependents_file) as f:
+            return json.load(f)
+    return []
+
+
+def save_dependents(dependents: list[dict]) -> None:
+    """Save the list of registered dependent projects."""
+    dependents_file = get_dependents_file()
+    with open(dependents_file, 'w') as f:
+        json.dump(dependents, f, indent=2)
+    print(f"Saved to: {dependents_file}")
 
 
 def ensure_directory(path: Path) -> None:
@@ -256,6 +284,114 @@ def cmd_init_db(args) -> None:
     init_database(xstory_root, target)
 
 
+def cmd_register(args) -> None:
+    """Register a project as a StoryTree dependent."""
+    target = Path(args.target).resolve()
+
+    if not target.exists():
+        print(f"Error: Directory does not exist: {target}")
+        sys.exit(1)
+
+    # Check if .StoryTree submodule exists
+    submodule_path = target / '.StoryTree'
+    if not submodule_path.exists():
+        print(f"Warning: No .StoryTree submodule found in {target}")
+        print("Consider running: git submodule add https://github.com/Mharbulous/StoryTree.git .StoryTree")
+
+    dependents = load_dependents()
+
+    # Check if already registered
+    for dep in dependents:
+        if dep['path'] == str(target):
+            print(f"Already registered: {target}")
+            return
+
+    # Add new dependent
+    name = args.name or target.name
+    dependents.append({
+        'name': name,
+        'path': str(target)
+    })
+
+    save_dependents(dependents)
+    print(f"Registered: {name} ({target})")
+
+
+def cmd_unregister(args) -> None:
+    """Unregister a project from StoryTree dependents."""
+    target = Path(args.target).resolve()
+    dependents = load_dependents()
+
+    original_count = len(dependents)
+    dependents = [d for d in dependents if d['path'] != str(target)]
+
+    if len(dependents) == original_count:
+        print(f"Not found in registry: {target}")
+        return
+
+    save_dependents(dependents)
+    print(f"Unregistered: {target}")
+
+
+def cmd_list_dependents(args) -> None:
+    """List all registered dependent projects."""
+    dependents = load_dependents()
+
+    if not dependents:
+        print("No dependent projects registered.")
+        print("\nRegister a project with:")
+        print("  python setup.py register --target /path/to/project")
+        return
+
+    print(f"Registered StoryTree dependents ({len(dependents)}):")
+    print("-" * 50)
+    for dep in dependents:
+        path = Path(dep['path'])
+        exists = path.exists()
+        status = "" if exists else " [NOT FOUND]"
+        print(f"  {dep['name']}: {dep['path']}{status}")
+
+
+def cmd_update_all(args) -> None:
+    """Sync workflows to all registered dependent projects."""
+    xstory_root = get_xstory_root()
+    dependents = load_dependents()
+
+    if not dependents:
+        print("No dependent projects registered.")
+        print("\nRegister a project with:")
+        print("  python setup.py register --target /path/to/project")
+        return
+
+    print(f"Updating workflows for {len(dependents)} project(s)...")
+    print("=" * 50)
+
+    success_count = 0
+    for dep in dependents:
+        target = Path(dep['path'])
+        print(f"\n[{dep['name']}] {target}")
+
+        if not target.exists():
+            print("  SKIPPED: Directory not found")
+            continue
+
+        try:
+            install_workflows(xstory_root, target)
+            install_actions(xstory_root, target)
+            success_count += 1
+            print("  OK: Workflows synced")
+        except Exception as e:
+            print(f"  ERROR: {e}")
+
+    print("\n" + "=" * 50)
+    print(f"Updated {success_count}/{len(dependents)} projects")
+
+    if success_count > 0:
+        print("\nNext steps:")
+        print("  1. Review changes in each project: git diff .github/")
+        print("  2. Commit and push: git add .github/ && git commit -m 'chore: sync StoryTree workflows'")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description='Xstory setup and installation tool',
@@ -279,6 +415,25 @@ def main() -> None:
     db_parser = subparsers.add_parser('init-db', help='Initialize story-tree.db in target project')
     db_parser.add_argument('--target', '-t', required=True, help='Target project directory')
     db_parser.set_defaults(func=cmd_init_db)
+
+    # register command
+    register_parser = subparsers.add_parser('register', help='Register a project as a StoryTree dependent')
+    register_parser.add_argument('--target', '-t', required=True, help='Project directory to register')
+    register_parser.add_argument('--name', '-n', help='Friendly name for the project (defaults to directory name)')
+    register_parser.set_defaults(func=cmd_register)
+
+    # unregister command
+    unregister_parser = subparsers.add_parser('unregister', help='Unregister a project from StoryTree dependents')
+    unregister_parser.add_argument('--target', '-t', required=True, help='Project directory to unregister')
+    unregister_parser.set_defaults(func=cmd_unregister)
+
+    # list-dependents command
+    list_parser = subparsers.add_parser('list-dependents', help='List all registered dependent projects')
+    list_parser.set_defaults(func=cmd_list_dependents)
+
+    # update-all command
+    update_parser = subparsers.add_parser('update-all', help='Sync workflows to all registered dependents')
+    update_parser.set_defaults(func=cmd_update_all)
 
     args = parser.parse_args()
 

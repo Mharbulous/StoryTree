@@ -33,7 +33,7 @@ This document provides visual representations of the key workflows and data stru
 |------|------------|
 | **Story node** | A unit of work in the hierarchical backlog—can be an epic, feature, capability, or task depending on depth. May have its own direct work AND children simultaneously. |
 | **Stage** | The current workflow phase of a story (e.g., `concept`, `approved`, `active`, `implemented`); represents multi-faceted state covering both own work and children's work |
-| **Hold reason** | A temporary blocking state that preserves the current stage (e.g., `blocked`, `paused`, `polish`, `wishlist`) |
+| **Hold reason** | A temporary blocking state that preserves the current stage (e.g., `blocked`, `paused`, `polish`, `wishlisted`) |
 | **Disposition** | A terminal state indicating the story will not progress further (e.g., `rejected`, `deprecated`, `archived`) |
 | **Closure table** | A database pattern that stores all ancestor-descendant relationships, enabling efficient hierarchy queries |
 | **Capacity** | The maximum number of children a node can have; grows dynamically based on completed work |
@@ -102,8 +102,8 @@ mindmap
     ⏳ queued
       Awaiting automated processing
       Clear: Algorithm runs
-    ❓ pending
-      Awaiting human decision
+    ❓ escalated
+      Human review required
       Clear: Human decides
     ⏸ paused
       Work paused
@@ -117,10 +117,10 @@ mindmap
     ◇ polish
       Needs refinement
       Clear: Refinement complete
-    ⚡ conflict
-      Inconsistent with another story
+    ⚡ conflicted
+      Story overlaps scope in inconsistent way
       Clear: Human resolves conflict
-    ? wishlist
+    ? wishlisted
       Indefinite hold, maybe someday
       Clear: Priority increases
 ```

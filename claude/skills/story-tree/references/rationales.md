@@ -14,7 +14,7 @@ Stores ALL ancestor-descendant paths, enabling subtree queries without recursion
 
 Priority algorithm excludes stories where:
 - `stage = 'concept'` (not yet approved)
-- `hold_reason IS NOT NULL` (queued/pending/blocked/broken/polish)
+- `hold_reason IS NOT NULL` (queued/escalated/blocked/broken/polish)
 - `disposition IS NOT NULL` (rejected/archived/etc)
 
 ## Dynamic Capacity

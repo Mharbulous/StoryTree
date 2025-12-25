@@ -277,7 +277,7 @@ def main():
         print(f"  - Cache hits used: {stats['cache_hits_used']}", file=sys.stderr)
 
         if stats['deferred'] > 0:
-            print(f"\n{stats['deferred']} concepts set to 'pending' status for later human review.", file=sys.stderr)
+            print(f"\n{stats['deferred']} concepts set to 'escalated' status for later human review.", file=sys.stderr)
 
         # Output summary JSON for orchestrator
         summary = {

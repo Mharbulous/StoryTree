@@ -103,7 +103,7 @@ WHERE id = ? AND stage = 'planned';
 ### Update to Hold (preserves stage)
 ```sql
 UPDATE story_nodes
-SET hold_reason = 'pending', human_review = 1,
+SET hold_reason = 'escalated', human_review = 1,
     notes = COALESCE(notes || char(10), '') || 'Reason: ...'
 WHERE id = ?;
 ```

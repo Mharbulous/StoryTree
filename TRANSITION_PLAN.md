@@ -17,13 +17,13 @@ StoryTree is integrated into projects using **git submodules** with **relative s
 
 ```
 YourProject/
-├── StoryTree/              ← Git submodule (https://github.com/Mharbulous/StoryTree)
+├── .StoryTree/             ← Git submodule (https://github.com/Mharbulous/StoryTree)
 ├── .claude/
 │   ├── skills/
-│   │   ├── story-tree/     ← Symlink → ../../StoryTree/claude/skills/story-tree
+│   │   ├── story-tree/     ← Symlink → ../../.StoryTree/claude/skills/story-tree
 │   │   └── ...
 │   ├── commands/
-│   │   └── *.md            ← Symlinks → ../../StoryTree/claude/commands/*.md
+│   │   └── *.md            ← Symlinks → ../../.StoryTree/claude/commands/*.md
 │   └── data/
 │       └── story-tree.db   ← Project-specific (NOT symlinked)
 └── .github/
@@ -153,8 +153,8 @@ cd C:\Users\Brahm\Git\SyncoPaid
 git rm -r --cached StoryTree 2>/dev/null
 rm -rf StoryTree
 
-# Add as git submodule
-git submodule add https://github.com/Mharbulous/StoryTree.git StoryTree
+# Add as git submodule (hidden directory)
+git submodule add https://github.com/Mharbulous/StoryTree.git .StoryTree
 ```
 
 ### 2.5 Remove StoryTree-Managed Components
@@ -190,7 +190,7 @@ import os
 from pathlib import Path
 
 # Skills
-skills_src = Path('StoryTree/claude/skills')
+skills_src = Path('.StoryTree/claude/skills')
 skills_dst = Path('.claude/skills')
 for skill in ['code-sentinel', 'goal-synthesis', 'prioritize-story-nodes',
               'story-arborist', 'story-building', 'story-execution',
@@ -201,7 +201,7 @@ for skill in ['code-sentinel', 'goal-synthesis', 'prioritize-story-nodes',
     os.symlink(rel_path, dst, target_is_directory=True)
 
 # Commands
-cmds_src = Path('StoryTree/claude/commands')
+cmds_src = Path('.StoryTree/claude/commands')
 cmds_dst = Path('.claude/commands')
 for cmd in ['ci-decompose-plan.md', 'ci-execute-plan.md', 'ci-identify-plan.md',
             'ci-review-plan.md', 'generate-stories.md', 'plan-story.md',
@@ -212,7 +212,7 @@ for cmd in ['ci-decompose-plan.md', 'ci-execute-plan.md', 'ci-identify-plan.md',
     os.symlink(rel_path, dst)
 
 # Scripts
-scripts_src = Path('StoryTree/claude/scripts')
+scripts_src = Path('.StoryTree/claude/scripts')
 scripts_dst = Path('.claude/scripts')
 for script in ['generate_vision_doc.py', 'insert_story.py', 'prioritize_stories.py',
                'story_tree_helpers.py', 'story_workflow.py']:
@@ -222,7 +222,7 @@ for script in ['generate_vision_doc.py', 'insert_story.py', 'prioritize_stories.
     os.symlink(rel_path, dst)
 
 # Data scripts
-data_src = Path('StoryTree/claude/data')
+data_src = Path('.StoryTree/claude/data')
 data_dst = Path('.claude/data')
 for script in ['init_story_tree.py', 'insert_stories.py',
                'migrate_normalize_stage_hierarchy.py', 'verify_root.py']:
@@ -239,14 +239,14 @@ for script in ['init_story_tree.py', 'insert_stories.py',
 dir /AL .claude\skills
 
 # Should show:
-# <SYMLINKD>  story-tree [..\..\StoryTree\claude\skills\story-tree]
+# <SYMLINKD>  story-tree [..\..\.StoryTree\claude\skills\story-tree]
 ```
 
 ### 2.8 Test Local Functionality
 
 1. Read a skill file through the symlink
 2. Verify database is accessible (117 story nodes)
-3. Run Xstory GUI: `python StoryTree\gui\xstory.py`
+3. Run Xstory GUI: `python .StoryTree\gui\xstory.py`
 
 ### 2.9 If Tests Fail: Rollback
 
@@ -334,7 +334,7 @@ Do NOT delete the backup yet:
 
 ```bash
 cd C:\Users\Brahm\Git\Listbot
-git submodule add https://github.com/Mharbulous/StoryTree.git StoryTree
+git submodule add https://github.com/Mharbulous/StoryTree.git .StoryTree
 ```
 
 ### 5.2 Create Relative Symlinks
@@ -345,13 +345,13 @@ Use the same Python script from Phase 2.6.
 
 ```bash
 # Copy empty database template
-cp StoryTree/templates/story-tree.db.empty .claude/data/story-tree.db
+cp .StoryTree/templates/story-tree.db.empty .claude/data/story-tree.db
 ```
 
 Or use the setup script:
 
 ```bash
-python StoryTree/setup.py init-db --target .
+python .StoryTree/setup.py init-db --target .
 ```
 
 ### 5.4 Verify Installation
@@ -398,10 +398,10 @@ git clone --recurse-submodules https://github.com/Mharbulous/SyncoPaid.git
 ### Updating StoryTree
 
 ```bash
-cd StoryTree
+cd .StoryTree
 git pull origin main
 cd ..
-git add StoryTree
+git add .StoryTree
 git commit -m "chore: update StoryTree submodule"
 ```
 ```
@@ -415,26 +415,27 @@ git commit -m "chore: update StoryTree submodule"
 Ensure README.md includes:
 
 - [x] Installation instructions (submodule approach)
-- [ ] Usage guide for new projects
-- [ ] Component overview
-- [ ] Xstory GUI documentation
+- [x] Usage guide for new projects
+- [x] Component overview
+- [x] Xstory GUI documentation
+- [x] Troubleshooting section
 
 ### 7.2 Standard Process for New Projects
 
 ```bash
-# 1. Add StoryTree as submodule
+# 1. Add StoryTree as submodule (hidden directory)
 cd /path/to/new-project
-git submodule add https://github.com/Mharbulous/StoryTree.git StoryTree
+git submodule add https://github.com/Mharbulous/StoryTree.git .StoryTree
 
 # 2. Create relative symlinks (use Python script from Phase 2.6)
 python create_symlinks.py
 
 # 3. Initialize database
-cp StoryTree/templates/story-tree.db.empty .claude/data/story-tree.db
+cp .StoryTree/templates/story-tree.db.empty .claude/data/story-tree.db
 
 # 4. Copy workflows to .github/
-cp -r StoryTree/github/workflows/* .github/workflows/
-cp -r StoryTree/github/actions/* .github/actions/
+cp -r .StoryTree/github/workflows/* .github/workflows/
+cp -r .StoryTree/github/actions/* .github/actions/
 
 # 5. Verify
 ls -la .claude/skills/  # Should show symlinks
@@ -458,9 +459,9 @@ gh repo edit --add-topic developer-tools
 ```bash
 cd C:\Users\Brahm\Git\SyncoPaid
 # Remove submodule
-git submodule deinit -f StoryTree
-git rm -f StoryTree
-rm -rf .git/modules/StoryTree
+git submodule deinit -f .StoryTree
+git rm -f .StoryTree
+rm -rf .git/modules/.StoryTree
 
 # Restore backup
 rm -rf .claude
@@ -514,15 +515,15 @@ cp -r .claude.backup-YYYYMMDD .claude
 - [ ] Update CLAUDE.md
 
 ### Phase 7: Documentation
-- [ ] Update StoryTree README
-- [ ] Document standard installation process
-- [ ] Add GitHub topics
+- [x] Update StoryTree README
+- [x] Document standard installation process
+- [x] Add GitHub topics (claude-code, story-driven-development, developer-tools)
 
 ---
 
 ## Notes
 
-- **Relative Symlinks**: All symlinks use relative paths (`../../StoryTree/claude/...`) so they work on any machine after cloning with submodules.
+- **Relative Symlinks**: All symlinks use relative paths (`../../.StoryTree/claude/...`) so they work on any machine after cloning with submodules.
 - **Symlink Bidirectionality**: Edits made through symlinked files modify StoryTree directly. This is intentional (improvements propagate everywhere) but requires awareness. Use `git diff` in StoryTree to review changes before committing.
 - **Git Submodule**: Always clone with `--recurse-submodules` or run `git submodule update --init` after cloning.
 - **GitHub Workflows**: Must be copied to `.github/workflows/` (GitHub doesn't follow symlinks).

@@ -1,0 +1,54 @@
+# Notify Dependent Repositories
+#
+# When StoryTree's main branch is updated, this workflow notifies all
+# dependent repositories so they can sync their workflows and submodule.
+#
+# How it works:
+# 1. StoryTree main branch receives a push
+# 2. This workflow sends a repository_dispatch event to each dependent
+# 3. The dependent's sync-storytree-workflows.yml receives the event
+# 4. The dependent updates its submodule and syncs workflows
+#
+# Setup required:
+# 1. Create a PAT with 'repo' scope (for private repos) or 'public_repo' (for public)
+# 2. Add it as DEPENDENTS_PAT secret in StoryTree's repo settings
+# 3. List dependent repos in the matrix below
+
+name: Notify Dependents
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false  # Continue notifying other repos if one fails
+      matrix:
+        repo:
+          - SyncoPaid
+          # Add more dependent repos here:
+          # - AnotherRepo
+          # - YetAnotherRepo
+
+    steps:
+      - name: Trigger sync in ${{ matrix.repo }}
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.DEPENDENTS_PAT }}
+          repository: ${{ github.repository_owner }}/${{ matrix.repo }}
+          event-type: storytree-updated
+          client-payload: |
+            {
+              "ref": "${{ github.sha }}",
+              "ref_name": "${{ github.ref_name }}",
+              "sender": "${{ github.actor }}"
+            }
+
+      - name: Log notification
+        run: |
+          echo "Notified ${{ matrix.repo }} about StoryTree update"
+          echo "  Commit: ${{ github.sha }}"
+          echo "  Branch: ${{ github.ref_name }}"
