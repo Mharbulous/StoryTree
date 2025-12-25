@@ -112,13 +112,34 @@ git push
 
 **Workflow Sync**: After pushing, the `sync-storytree-workflows` action will automatically create a PR if any GitHub workflows changed in StoryTree. Review and merge that PR to complete the update.
 
+### Managing Multiple Projects
+
+If you have multiple projects using StoryTree, you can register them for batch updates:
+
+```bash
+# Register projects (one-time setup, run from StoryTree directory)
+python setup.py register --target /path/to/SyncoPaid --name SyncoPaid
+python setup.py register --target /path/to/Listbot --name Listbot
+
+# List registered projects
+python setup.py list-dependents
+
+# After pulling StoryTree updates, sync workflows to ALL projects
+python setup.py update-all
+
+# Remove a project from registry
+python setup.py unregister --target /path/to/Project
+```
+
+The `update-all` command copies workflows to all registered projects at once, then prompts you to commit the changes in each project.
+
 ## Directory Structure
 
 ```
 StoryTree/
 ├── README.md
 ├── TRANSITION_PLAN.md       # Migration documentation
-├── setup.py                 # Database initialization only
+├── setup.py                 # Installation & dependent management
 ├── ai_docs/
 │   └── Handovers/           # Development handover docs
 ├── claude/
