@@ -33,7 +33,6 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      workflows: write
 
     steps:
       - name: Checkout repository
@@ -76,12 +75,13 @@ jobs:
         if: steps.changes.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v5
         with:
+          token: ${{ secrets.DEPENDENTS_PAT }}
           commit-message: "chore: sync workflows from StoryTree submodule"
           title: "Sync StoryTree workflows"
           body: |
             This PR syncs GitHub workflows from the `.StoryTree` submodule.
 
-            **Trigger:** `${{ github.event_name }}`${{ github.event_name == 'repository_dispatch' && format(' (StoryTree commit: {0})', github.event.client_payload.ref) || '' }}
+            **Trigger:** `${{ github.event_name }}`
 
             GitHub requires workflow files to be actual files (not symlinks), so this
             automated sync ensures your workflows stay up-to-date with StoryTree.
