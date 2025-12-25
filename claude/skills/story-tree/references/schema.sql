@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS story_nodes (
         )),
     hold_reason TEXT DEFAULT NULL
         CHECK (hold_reason IS NULL OR hold_reason IN (
-            'queued', 'pending', 'paused', 'blocked', 'broken', 'polish', 'conflict', 'wishlist'
+            'queued', 'escalated', 'paused', 'blocked', 'broken', 'polish', 'conflicted', 'wishlisted'
         )),
     disposition TEXT DEFAULT NULL
         CHECK (disposition IS NULL OR disposition IN (
@@ -115,15 +115,15 @@ END;
 --   → implemented → ready → polish → released
 --
 -- HOLD_REASON (8 values + NULL): Why work is stopped (orthogonal to stage)
---   NULL     = Not held, work can proceed
---   queued   = Waiting for automated processing (algorithm hasn't run yet)
---   pending  = Awaiting human decision (algorithm ran but can't decide)
---   paused   = Execution blocked by critical issue
---   blocked  = External dependency
---   broken   = Something wrong with story definition
---   polish   = Needs refinement before proceeding
---   conflict = Inconsistent with another story, needs human resolution
---   wishlist = Indefinite hold, maybe someday (can be revived when priorities change)
+--   NULL       = Not held, work can proceed
+--   queued     = Waiting for automated processing (algorithm hasn't run yet)
+--   escalated  = Human review required
+--   paused     = Execution blocked by critical issue
+--   blocked    = External dependency
+--   broken     = Something wrong with story definition
+--   polish     = Needs refinement before proceeding
+--   conflicted = Story overlaps scope of another story in inconsistent way
+--   wishlisted = Indefinite hold, maybe someday (can be revived when priorities change)
 --
 -- DISPOSITION (6 values + NULL): Terminal state (exits pipeline)
 --   NULL        = Active in pipeline

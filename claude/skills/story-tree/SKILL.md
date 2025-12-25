@@ -191,7 +191,7 @@ import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'story-tree', 'utility'))
 from story_db_common import (
     DB_PATH,                    # '.claude/data/story-tree.db'
-    MERGEABLE_STATUSES,         # {'concept', 'wishlist', 'polish'} - concept=stage, others=hold_reason
+    MERGEABLE_STATUSES,         # {'concept', 'wishlisted', 'polish'} - concept=stage, others=hold_reason
     BLOCK_STATUSES,             # {'rejected', 'infeasible', 'duplicative', 'broken', ...}
     get_connection,             # Get SQLite connection
     make_pair_key,              # Canonical pair key for caching
@@ -200,9 +200,9 @@ from story_db_common import (
     delete_story,               # Cascade delete from story_nodes + story_paths
     reject_concept,             # Human rejection (disposition='rejected', goal signal)
     duplicative_concept,        # Algorithm duplicate (disposition='duplicative', no signal)
-    conflict_concept,           # Inconsistent stories (hold_reason='conflict', needs resolution)
+    conflict_concept,           # Inconsistent stories (hold_reason='conflicted', needs resolution)
     block_concept,              # Set hold_reason='blocked' with note
-    defer_concept,              # Set hold_reason='pending' with note
+    defer_concept,              # Set hold_reason='escalated' with note
     merge_concepts,             # Merge two stories into one
     # Tree reorganization functions
     validate_tree_structure,    # Find structural issues in tree
