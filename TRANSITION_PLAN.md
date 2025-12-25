@@ -502,10 +502,10 @@ cp -r .claude.backup-YYYYMMDD .claude
 - [ ] Monitor for issues
 
 ### Phase 5: Set Up Listbot
-- [ ] Add StoryTree as submodule
-- [ ] Create relative symlinks
-- [ ] Initialize database
-- [ ] Verify installation
+- [x] Add StoryTree as submodule
+- [x] Create relative symlinks (29 symlinks)
+- [x] Initialize database (preserved existing 34 story nodes)
+- [x] Verify installation
 
 ### Phase 6: Cleanup SyncoPaid
 - [ ] Confirm CI stable for several days
