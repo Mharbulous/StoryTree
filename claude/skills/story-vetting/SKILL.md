@@ -67,13 +67,13 @@ Effective status is computed as `COALESCE(disposition, hold_reason, stage)`.
 
 **Mergeable with concepts:**
 - `stage = 'concept'`
-- `hold_reason = 'wishlist'`
+- `hold_reason = 'wishlisted'`
 - `hold_reason = 'polish'`
 - `hold_reason = 'refine'`
 
 **Block against:**
 - `disposition IN ('rejected', 'infeasible', 'duplicative')`
-- `hold_reason IN ('broken', 'queued', 'pending', 'blocked', 'conflict')`
+- `hold_reason IN ('broken', 'queued', 'escalated', 'blocked', 'conflicted')`
 
 **Auto-duplicative against:**
 - `stage IN ('approved', 'planned', 'active', 'reviewing', 'implemented', 'ready', 'polish', 'released')`
@@ -90,7 +90,7 @@ Priority: disposition (terminal) > hold_reason (paused) > stage (position)
 
 This means:
 - Story with `disposition='rejected'` shows status='rejected' regardless of stage
-- Story with `hold_reason='pending'` shows status='pending' (stage preserved for resume)
+- Story with `hold_reason='escalated'` shows status='escalated' (stage preserved for resume)
 - Story with only stage set shows that stage value
 
 ---
@@ -206,9 +206,9 @@ Use this lookup based on classification and effective statuses (computed from th
 
 ```python
 # Effective status = COALESCE(disposition, hold_reason, stage)
-# Note: concept=stage, wishlist/polish/refine=hold_reason
-MERGEABLE_STATUSES = {'concept', 'wishlist', 'polish', 'refine'}
-BLOCK_STATUSES = {'rejected', 'infeasible', 'duplicative', 'broken', 'queued', 'pending', 'blocked', 'conflict'}
+# Note: concept=stage, wishlisted/polish/refine=hold_reason
+MERGEABLE_STATUSES = {'concept', 'wishlisted', 'polish', 'refine'}
+BLOCK_STATUSES = {'rejected', 'infeasible', 'duplicative', 'broken', 'queued', 'escalated', 'blocked', 'conflicted'}
 
 def get_action(conflict_type, eff_status_a, eff_status_b, ci_mode=False):
     # Ensure concept is always story_a for consistent logic

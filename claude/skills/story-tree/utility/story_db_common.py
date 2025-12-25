@@ -29,11 +29,11 @@ DB_PATH = '.claude/data/story-tree.db'
 # These represent computed status values from COALESCE(disposition, hold_reason, stage)
 
 # Statuses that allow merging (early-stage concepts)
-# Note: concept=stage, wishlist/polish/refine=hold_reason
-MERGEABLE_STATUSES = {'concept', 'wishlist', 'polish', 'refine'}
+# Note: concept=stage, wishlisted/polish/refine=hold_reason
+MERGEABLE_STATUSES = {'concept', 'wishlisted', 'polish', 'refine'}
 
 # Statuses that indicate blocking conditions (story not actively progressing)
-BLOCK_STATUSES = {'rejected', 'infeasible', 'duplicative', 'broken', 'queued', 'pending', 'blocked', 'conflict'}
+BLOCK_STATUSES = {'rejected', 'infeasible', 'duplicative', 'broken', 'queued', 'escalated', 'blocked', 'conflicted'}
 
 # Valid vetting classification types
 CLASSIFICATIONS = {
@@ -126,7 +126,7 @@ def compute_effective_status(
 
     The three-field system uses:
     - stage: Position in pipeline (concept, approved, planned, active, etc.)
-    - hold_reason: Why work is paused (queued, pending, blocked, wishlist, etc.)
+    - hold_reason: Why work is paused (queued, escalated, blocked, wishlisted, etc.)
     - disposition: Terminal state (rejected, archived, infeasible, etc.)
 
     Args:
@@ -265,9 +265,9 @@ def defer_concept(
     concept_id: str,
     conflicting_id: str
 ) -> None:
-    """Set concept hold_reason to refine due to scope overlap.
+    """Set concept hold_reason to escalated for human review.
 
-    This marks a concept for refinement when scope overlap is detected.
+    This marks a concept for human review when scope overlap is detected.
     The stage is preserved and hold_reason provides the effective status.
     Sets human_review flag for attention.
 
@@ -281,7 +281,7 @@ def defer_concept(
     """
     conn.execute('''
         UPDATE story_nodes
-        SET hold_reason = 'pending', human_review = 1,
+        SET hold_reason = 'escalated', human_review = 1,
             notes = COALESCE(notes || char(10), '') || 'Scope overlap detected with story-node IDs: ' || ?
         WHERE id = ?
     ''', (conflicting_id, concept_id))
@@ -292,9 +292,9 @@ def conflict_concept(
     concept_id: str,
     conflicting_id: str
 ) -> None:
-    """Set concept hold_reason to conflict (inconsistent with another story, needs resolution).
+    """Set concept hold_reason to conflicted (overlaps scope of another story in inconsistent way).
 
-    Use this when two stories are INCONSISTENT (mutually exclusive approaches)
+    Use this when a story overlaps scope of another story in an inconsistent way
     and a human has NOT yet decided which one to pursue.
 
     For algorithm-detected duplicates, use duplicative_concept() instead.
@@ -302,7 +302,7 @@ def conflict_concept(
 
     Args:
         conn: SQLite connection
-        concept_id: ID of concept to mark as conflicting
+        concept_id: ID of concept to mark as conflicted
         conflicting_id: ID of the conflicting story (for note)
 
     Note:
@@ -310,8 +310,8 @@ def conflict_concept(
     """
     conn.execute('''
         UPDATE story_nodes
-        SET hold_reason = 'conflict', human_review = 1,
-            notes = COALESCE(notes || char(10), '') || 'Inconsistent with story node ' || ? || ' - needs resolution'
+        SET hold_reason = 'conflicted', human_review = 1,
+            notes = COALESCE(notes || char(10), '') || 'Scope overlap (inconsistent) with story node ' || ? || ' - needs resolution'
         WHERE id = ?
     ''', (conflicting_id, concept_id))
 

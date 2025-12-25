@@ -34,7 +34,7 @@ def update_status(story_id: str, new_stage: str, notes: str = None, hold: bool =
         story_id: The story ID to update
         new_stage: The new stage value (e.g., 'implemented', 'verifying')
         notes: Optional verification notes to append
-        hold: If True, set hold_reason='pending' and human_review=1 (for failures/untestable)
+        hold: If True, set hold_reason='escalated' and human_review=1 (for failures/untestable)
     """
     if new_stage not in VALID_STAGES:
         return {"error": f"Invalid stage: {new_stage}", "valid_stages": list(VALID_STAGES)}
@@ -63,7 +63,7 @@ def update_status(story_id: str, new_stage: str, notes: str = None, hold: bool =
         # Keep stage, set hold_reason for human review
         conn.execute('''
             UPDATE story_nodes
-            SET hold_reason = 'pending', human_review = 1,
+            SET hold_reason = 'escalated', human_review = 1,
                 notes = ?, updated_at = datetime('now')
             WHERE id = ?
         ''', (new_notes, story_id))

@@ -188,8 +188,8 @@ Based on verification results:
 | Result | Action |
 |--------|--------|
 | All PASS/SKIP | Update stage to `implemented` |
-| Any FAIL | Keep stage at `verifying`, set hold_reason='pending', human_review=1 |
-| All PASS but some UNTESTABLE | Keep stage at `verifying`, set hold_reason='pending', human_review=1 |
+| Any FAIL | Keep stage at `verifying`, set hold_reason='escalated', human_review=1 |
+| All PASS but some UNTESTABLE | Keep stage at `verifying`, set hold_reason='escalated', human_review=1 |
 | Mixed results | Interactive: ask user; CI: keep at `verifying` with hold |
 
 ```bash

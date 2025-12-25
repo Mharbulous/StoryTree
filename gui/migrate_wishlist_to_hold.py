@@ -3,13 +3,13 @@
 Migrate wishlist from disposition to hold_reason.
 
 This script migrates existing 'wishlist' values from the disposition field
-to the hold_reason field, reflecting the semantic change that wishlist is
+to the hold_reason field, reflecting the semantic change that wishlisted is
 an indefinite hold (can be revived) rather than a terminal state.
 
 Migration:
 1. Recreates story_nodes table with updated CHECK constraints
 2. For rows where disposition = 'wishlist':
-   - Set hold_reason = 'wishlist'
+   - Set hold_reason = 'wishlisted'
    - Set disposition = NULL
 
 Usage:
@@ -37,7 +37,7 @@ CREATE TABLE story_nodes_new (
         )),
     hold_reason TEXT DEFAULT NULL
         CHECK (hold_reason IS NULL OR hold_reason IN (
-            'queued', 'pending', 'paused', 'blocked', 'broken', 'polish', 'conflict', 'wishlist'
+            'queued', 'escalated', 'paused', 'blocked', 'broken', 'polish', 'conflicted', 'wishlisted'
         )),
     disposition TEXT DEFAULT NULL
         CHECK (disposition IS NULL OR disposition IN (
@@ -104,12 +104,12 @@ def migrate(db_path: Path, dry_run: bool = False) -> dict:
     cursor.execute("""
         SELECT id, title, stage, hold_reason, disposition
         FROM story_nodes
-        WHERE disposition = 'wishlist'
+        WHERE disposition = 'wishlist' OR disposition = 'wishlisted'
     """)
     wishlist_rows = cursor.fetchall()
     stats['total_wishlist'] = len(wishlist_rows)
 
-    print(f"\nFound {len(wishlist_rows)} stories with disposition='wishlist'")
+    print(f"\nFound {len(wishlist_rows)} stories with disposition='wishlist' or 'wishlisted'")
     for row in wishlist_rows:
         if row['hold_reason']:
             print(f"  SKIP: {row['id']} - already has hold_reason='{row['hold_reason']}'")
@@ -139,11 +139,11 @@ def migrate(db_path: Path, dry_run: bool = False) -> dict:
         SELECT
             id, title, description, capacity, stage,
             CASE
-                WHEN disposition = 'wishlist' AND hold_reason IS NULL THEN 'wishlist'
+                WHEN (disposition = 'wishlist' OR disposition = 'wishlisted') AND hold_reason IS NULL THEN 'wishlisted'
                 ELSE hold_reason
             END as hold_reason,
             CASE
-                WHEN disposition = 'wishlist' THEN NULL
+                WHEN disposition = 'wishlist' OR disposition = 'wishlisted' THEN NULL
                 ELSE disposition
             END as disposition,
             human_review,

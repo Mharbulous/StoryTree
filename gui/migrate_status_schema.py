@@ -40,9 +40,9 @@ CREATE TABLE IF NOT EXISTS story_nodes (
     capacity INTEGER,
     status TEXT NOT NULL DEFAULT 'concept'
         CHECK (status IN (
-            'infeasible', 'rejected', 'wishlist',
+            'infeasible', 'rejected', 'wishlisted',
             'concept', 'broken', 'blocked', 'refine',
-            'pending', 'approved', 'planned', 'pending', 'paused',
+            'escalated', 'approved', 'planned', 'escalated', 'paused',
             'active',
             'reviewing', 'implemented',
             'ready', 'polish', 'released',
@@ -235,9 +235,9 @@ def verify():
     cursor.execute("""
         SELECT status, COUNT(*) FROM story_nodes
         WHERE status NOT IN (
-            'infeasible', 'rejected', 'wishlist',
+            'infeasible', 'rejected', 'wishlisted',
             'concept', 'broken', 'blocked', 'refine',
-            'pending', 'approved', 'planned', 'pending', 'paused',
+            'escalated', 'approved', 'planned', 'escalated', 'paused',
             'active',
             'reviewing', 'implemented',
             'ready', 'polish', 'released',
