@@ -107,7 +107,10 @@ git pull origin main
 cd ..
 git add .StoryTree
 git commit -m "chore: update StoryTree submodule"
+git push
 ```
+
+**Workflow Sync**: After pushing, the `sync-storytree-workflows` action will automatically create a PR if any GitHub workflows changed in StoryTree. Review and merge that PR to complete the update.
 
 ## Directory Structure
 
