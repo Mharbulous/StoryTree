@@ -30,7 +30,9 @@ import os
 import platform
 import shutil
 import sqlite3
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -77,6 +79,218 @@ def save_dependents(dependents: list[dict]) -> None:
 def ensure_directory(path: Path) -> None:
     """Ensure a directory exists, creating it if necessary."""
     path.mkdir(parents=True, exist_ok=True)
+
+
+def configure_git_for_symlinks(target: Path) -> bool:
+    """Configure git in target repo to support symlinks.
+
+    Returns True if configuration was changed, False if already correct.
+    """
+    # Check if target is a git repo
+    git_dir = target / '.git'
+    if not git_dir.exists():
+        print("\nNote: Target is not a git repository, skipping git configuration.")
+        return False
+
+    # Check current symlinks setting
+    try:
+        result = subprocess.run(
+            ['git', '-C', str(target), 'config', '--local', '--get', 'core.symlinks'],
+            capture_output=True, text=True
+        )
+        current_value = result.stdout.strip().lower()
+    except FileNotFoundError:
+        print("\nWarning: git not found in PATH, skipping git configuration.")
+        return False
+
+    if current_value == 'true':
+        return False  # Already configured correctly
+
+    # Enable symlinks
+    try:
+        subprocess.run(
+            ['git', '-C', str(target), 'config', '--local', 'core.symlinks', 'true'],
+            check=True, capture_output=True
+        )
+        print("  Set core.symlinks = true")
+
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"  Warning: Failed to configure git: {e}")
+        return False
+
+
+def configure_submodule_recurse(target: Path) -> bool:
+    """Configure git to automatically update submodules on pull/checkout.
+
+    Returns True if configuration was changed, False if already correct.
+    """
+    git_dir = target / '.git'
+    if not git_dir.exists():
+        return False
+
+    try:
+        result = subprocess.run(
+            ['git', '-C', str(target), 'config', '--local', '--get', 'submodule.recurse'],
+            capture_output=True, text=True
+        )
+        current_value = result.stdout.strip().lower()
+    except FileNotFoundError:
+        return False
+
+    if current_value == 'true':
+        return False
+
+    try:
+        subprocess.run(
+            ['git', '-C', str(target), 'config', '--local', 'submodule.recurse', 'true'],
+            check=True, capture_output=True
+        )
+        print("  Set submodule.recurse = true (git pull will auto-update submodules)")
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+
+def check_windows_symlink_support() -> bool:
+    """Check if Windows can create symlinks (Developer Mode enabled).
+
+    Returns True if symlinks are supported, False otherwise.
+    """
+    if platform.system() != 'Windows':
+        return True
+
+    # Try to create a test symlink in temp directory
+    try:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            test_target = Path(tmpdir) / 'test_target'
+            test_link = Path(tmpdir) / 'test_link'
+            test_target.mkdir()
+            os.symlink(test_target, test_link, target_is_directory=True)
+            return True
+    except OSError:
+        return False
+
+
+def check_source_directories(xstory_root: Path) -> bool:
+    """Verify that StoryTree source directories exist.
+
+    Returns True if all required directories exist, False otherwise.
+    """
+    required_dirs = [
+        xstory_root / 'claude' / 'skills',
+        xstory_root / 'claude' / 'commands',
+        xstory_root / 'claude' / 'scripts',
+        xstory_root / 'claude' / 'data',
+        xstory_root / 'github' / 'workflows',
+        xstory_root / 'github' / 'actions',
+    ]
+
+    missing = [d for d in required_dirs if not d.exists()]
+
+    if missing:
+        print("\nError: StoryTree source directories not found:")
+        for d in missing:
+            print(f"  - {d}")
+        print("\nThis usually means the submodule is not initialized.")
+        print("Run: git submodule update --init --recursive")
+        return False
+
+    return True
+
+
+def is_broken_symlink_file(path: Path) -> bool:
+    """Check if a path is a text file containing a symlink target (broken symlink).
+
+    When git clones with core.symlinks=false, symlinks become text files
+    containing the relative path to the target.
+    """
+    if not path.exists():
+        return False
+
+    # Real symlinks show as symlinks
+    if path.is_symlink():
+        return False
+
+    # Directories are not broken symlinks
+    if path.is_dir():
+        return False
+
+    # Check if it's a small file containing a path-like string
+    try:
+        # Broken symlink files are typically < 200 bytes
+        if path.stat().st_size > 200:
+            return False
+
+        content = path.read_text().strip()
+
+        # Check if content looks like a relative path to StoryTree
+        if '.StoryTree/' in content or '../' in content:
+            return True
+
+    except (OSError, UnicodeDecodeError):
+        pass
+
+    return False
+
+
+def clean_broken_symlinks(target: Path) -> int:
+    """Find and remove broken symlink files in target .claude directory.
+
+    Returns the number of broken symlinks cleaned.
+    """
+    claude_dir = target / '.claude'
+    if not claude_dir.exists():
+        return 0
+
+    cleaned = 0
+    dirs_to_check = ['skills', 'commands', 'scripts', 'data']
+
+    for subdir in dirs_to_check:
+        check_dir = claude_dir / subdir
+        if not check_dir.exists():
+            continue
+
+        for item in check_dir.iterdir():
+            if is_broken_symlink_file(item):
+                print(f"  Removing broken symlink: {item.name}")
+                item.unlink()
+                cleaned += 1
+
+    return cleaned
+
+
+def verify_symlinks(target: Path) -> tuple[int, int]:
+    """Verify that created symlinks resolve to valid targets.
+
+    Returns tuple of (valid_count, broken_count).
+    """
+    claude_dir = target / '.claude'
+    if not claude_dir.exists():
+        return (0, 0)
+
+    valid = 0
+    broken = 0
+    dirs_to_check = ['skills', 'commands', 'scripts', 'data']
+
+    for subdir in dirs_to_check:
+        check_dir = claude_dir / subdir
+        if not check_dir.exists():
+            continue
+
+        for item in check_dir.iterdir():
+            if item.is_symlink():
+                # Check if symlink target exists
+                try:
+                    if item.resolve().exists():
+                        valid += 1
+                    else:
+                        print(f"  Warning: Broken symlink: {item} -> {os.readlink(item)}")
+                        broken += 1
+                except OSError:
+                    broken += 1
+
+    return (valid, broken)
 
 
 def create_symlink(src: Path, dest: Path) -> None:
@@ -237,16 +451,44 @@ def cmd_install(args) -> None:
     target = Path(args.target).resolve()
     use_symlinks = not is_ci_mode(args.ci)
 
-    print(f"Xstory Installation")
+    print(f"StoryTree Installation")
     print(f"=" * 40)
     print(f"Source: {xstory_root}")
     print(f"Target: {target}")
     print(f"Mode: {'Copy (CI)' if not use_symlinks else 'Symlink (Local Dev)'}")
 
+    # Pre-flight checks
     if not target.exists():
         print(f"\nError: Target directory does not exist: {target}")
         sys.exit(1)
 
+    # Check source directories exist (submodule initialized)
+    if not check_source_directories(xstory_root):
+        sys.exit(1)
+
+    # Windows-specific: Check Developer Mode before attempting symlinks
+    if use_symlinks and not check_windows_symlink_support():
+        print("\nError: Cannot create symlinks on Windows.")
+        print("Please enable Developer Mode:")
+        print("  Settings > Privacy & Security > For developers > Developer Mode: ON")
+        print("\nAlternatively, run with --ci flag to copy files instead of symlinking.")
+        sys.exit(1)
+
+    # Configure git for symlinks before creating them
+    if use_symlinks:
+        print("\nConfiguring git...")
+        symlinks_changed = configure_git_for_symlinks(target)
+        recurse_changed = configure_submodule_recurse(target)
+        if not symlinks_changed and not recurse_changed:
+            print("  Git already configured correctly")
+
+    # Clean up broken symlinks (text files from previous clone with core.symlinks=false)
+    if use_symlinks:
+        cleaned = clean_broken_symlinks(target)
+        if cleaned > 0:
+            print(f"\nCleaned {cleaned} broken symlink(s) from previous installation")
+
+    # Install components
     install_skills(xstory_root, target, use_symlinks)
     install_commands(xstory_root, target, use_symlinks)
     install_scripts(xstory_root, target, use_symlinks)
@@ -257,13 +499,22 @@ def cmd_install(args) -> None:
     if args.init_db:
         init_database(xstory_root, target)
 
+    # Verify symlinks if applicable
+    if use_symlinks:
+        print("\nVerifying installation...")
+        valid, broken = verify_symlinks(target)
+        if broken > 0:
+            print(f"  Warning: {broken} broken symlink(s) detected")
+        else:
+            print(f"  All {valid} symlink(s) verified successfully")
+
     print(f"\n{'=' * 40}")
     print("Installation complete!")
 
     if use_symlinks:
-        print("\nSymlinks created. Changes to xstory will reflect immediately.")
+        print("\nSymlinks created. Changes to StoryTree will reflect immediately.")
     else:
-        print("\nFiles copied. Run 'setup.py sync-workflows' after xstory updates.")
+        print("\nFiles copied. Run 'setup.py sync-workflows' after StoryTree updates.")
 
 
 def cmd_sync_workflows(args) -> None:
