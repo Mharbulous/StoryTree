@@ -185,7 +185,7 @@ flowchart TB
 Holds gate progression within each stage. Clearing all holds triggers automatic transition to the next stage's queue.
 
 ```mermaid
-flowchart LR
+flowchart TB
     subgraph concept_stage [concept]
         c_q[📋 queued]
         c_e[⏳ escalated]
