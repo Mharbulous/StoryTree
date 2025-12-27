@@ -10,41 +10,66 @@ Generate `patterns.md` and `anti-patterns.md` in `.claude/data/design/`.
 
 ## Workflow
 
-### Step 1: Check Prerequisites
+### Step 1: Determine Mode
+
+Check for `--as-is` argument and whether design files exist:
 
 ```bash
 python .claude/scripts/design_synthesis_helpers.py prereq
 ```
 
-**Exit early if:**
+**Mode Selection:**
+- `--as-is` flag passed → **Codebase Analysis Mode**
+- `patterns_exists` = false OR `anti_patterns_exists` = false → **Codebase Analysis Mode** (for missing files)
+- Both files exist and no `--as-is` → **Incremental Update Mode**
+
+**Exit early if (Incremental Mode only):**
 - `needs_patterns_update` = false AND `needs_anti_patterns_update` = false (counts unchanged)
-- No relevant story data (`ui_implemented_count` = 0 AND `ui_rejected_count` = 0)
 
-### Step 2: Spawn Parallel Agents
+### Step 2A: Codebase Analysis Mode (First Run or --as-is)
 
-Launch agents for files that need updating (haiku model):
+When creating files from scratch or refreshing from codebase, spawn exploration agents:
+
+**Agent 1 (patterns - codebase analysis):**
+- Use Glob to find UI files: `**/*.py`, `**/*.qml`, `**/*.ui`, `**/*.tsx`, `**/*.vue`
+- Focus on GUI frameworks: PySide6, PyQt, Tkinter, React, Vue, etc.
+- Identify patterns for:
+  - Widget/component organization
+  - Layout management approaches
+  - Color schemes and theming
+  - Event handling patterns
+  - State management in UI
+  - Navigation patterns
+  - Form validation approaches
+  - Error display conventions
+  - Loading/progress indicators
+  - Responsive design patterns
+- Read existing `.claude/data/design/patterns.md` if it exists (preserve valuable content)
+- Write `.claude/data/design/patterns.md`
+
+**Agent 2 (anti-patterns - codebase analysis):**
+- Search for UI-related issues in code comments (TODO, FIXME, HACK, XXX)
+- Look for deprecated UI patterns
+- Check for accessibility issues (missing alt text, poor contrast references)
+- Query rejected stories: `python .claude/scripts/design_synthesis_helpers.py anti-patterns`
+- Read existing `.claude/data/design/anti-patterns.md` if it exists (preserve valuable content)
+- Write `.claude/data/design/anti-patterns.md`
+
+### Step 2B: Incremental Update Mode (Existing Files)
+
+When design files exist, use them as authoritative guidance and update with new story data:
 
 **Agent 1 (patterns)** - Only if `needs_patterns_update` is true:
+- **Read existing `.claude/data/design/patterns.md` first** - this is the source of truth
 - Query: `python .claude/scripts/design_synthesis_helpers.py patterns`
-- Read existing `.claude/data/design/patterns.md` for context (if exists)
-- Write `.claude/data/design/patterns.md` with sections:
-  - **Design Philosophy** - Core UI/UX principles guiding the project
-  - **Component Patterns** - Reusable UI component patterns
-  - **Interaction Patterns** - Standard user interaction flows
-  - **Layout Conventions** - Consistent layout approaches
-  - **Accessibility Standards** - A11y requirements and patterns
-  - Footer with timestamp
+- Merge new story patterns while preserving existing documented patterns
+- Write updated `.claude/data/design/patterns.md`
 
 **Agent 2 (anti-patterns)** - Only if `needs_anti_patterns_update` is true:
+- **Read existing `.claude/data/design/anti-patterns.md` first** - this is the source of truth
 - Query: `python .claude/scripts/design_synthesis_helpers.py anti-patterns`
-- Read existing `.claude/data/design/anti-patterns.md` for context (if exists)
-- Write `.claude/data/design/anti-patterns.md` with sections:
-  - **Rejected Approaches** - UI/UX ideas explicitly rejected (with rejection reasons)
-  - **Usability Issues** - Known usability problems to avoid
-  - **Visual Anti-Patterns** - Visual design mistakes to avoid
-  - **Interaction Anti-Patterns** - Poor interaction patterns to avoid
-  - **Performance Concerns** - UI patterns that cause performance issues
-  - Footer with timestamp
+- Merge new story anti-patterns while preserving existing documented anti-patterns
+- Write updated `.claude/data/design/anti-patterns.md`
 
 ### Step 3: Update Metadata
 
@@ -54,13 +79,31 @@ After agents complete, update the synthesis metadata:
 python .claude/scripts/design_synthesis_helpers.py update-meta
 ```
 
-This records current counts so future prereq checks can skip synthesis when nothing has changed.
+## Document Structure
+
+**patterns.md:**
+- **Design Philosophy** - Core UI/UX principles guiding the project
+- **Component Patterns** - Reusable UI component patterns (with code examples)
+- **Interaction Patterns** - Standard user interaction flows
+- **Layout Conventions** - Consistent layout approaches
+- **Theming & Styling** - Color, typography, and visual consistency
+- **Accessibility Standards** - A11y requirements and patterns
+- Footer with timestamp
+
+**anti-patterns.md:**
+- **Rejected Approaches** - UI/UX ideas explicitly rejected (with rejection reasons)
+- **Usability Issues** - Known usability problems to avoid
+- **Visual Anti-Patterns** - Visual design mistakes to avoid
+- **Interaction Anti-Patterns** - Poor interaction patterns to avoid
+- **Performance Concerns** - UI patterns that cause performance issues
+- Footer with timestamp
 
 ## Key Rules
 
 - Spawn agents in parallel, never sequentially
 - Use Python sqlite3 module, NOT sqlite3 CLI
+- **Codebase Analysis Mode:** Derive patterns from actual implementation
+- **Incremental Mode:** Existing files are authoritative - preserve and extend
 - Include rejection reasons in anti-patterns bullets
-- Read existing files first to preserve accumulated context
 - Always run update-meta after successful synthesis
-- Focus on UI/UX-related stories (search for keywords: ui, ux, design, layout, component, button, form, modal, dialog, menu, navigation, style, theme, color, font, icon, responsive, accessibility, a11y)
+- Focus on UI/UX-related stories (keywords: ui, ux, design, layout, component, button, form, modal, dialog, menu, navigation, style, theme, color, font, icon, responsive, accessibility, a11y)

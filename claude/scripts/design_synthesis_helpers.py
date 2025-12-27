@@ -11,6 +11,8 @@ from datetime import date
 DB_PATH = '.claude/data/story-tree.db'
 DESIGN_DIR = '.claude/data/design'
 META_FILE = f'{DESIGN_DIR}/synthesis-meta.json'
+PATTERNS_FILE = f'{DESIGN_DIR}/patterns.md'
+ANTI_PATTERNS_FILE = f'{DESIGN_DIR}/anti-patterns.md'
 
 # Keywords that indicate UI/UX related content
 UI_UX_KEYWORDS = [
@@ -41,10 +43,13 @@ def get_prerequisites():
     """Return all prerequisite data in one call.
 
     Compares current DB counts against synthesis-meta.json to determine
-    if re-synthesis is needed.
+    if re-synthesis is needed. Also reports whether design files exist
+    to determine if codebase analysis is needed.
     """
     result = {
         'db_exists': os.path.exists(DB_PATH),
+        'patterns_exists': os.path.exists(PATTERNS_FILE),
+        'anti_patterns_exists': os.path.exists(ANTI_PATTERNS_FILE),
         'ui_implemented_count': 0,
         'ui_rejected_count': 0,
         'needs_patterns_update': True,
