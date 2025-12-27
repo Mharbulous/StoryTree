@@ -243,10 +243,10 @@ print('Story inserted - proceeding to vetting')
 
 > **Do not commit yet.** The story is inserted but not validated.
 
-### Step 2: Vet Story
+### Step 2: Vet Concept
 
 ```bash
-python .claude/skills/story-vetting/candidate_detector.py --story-id NEW_ID
+python .claude/skills/concept-vetting/candidate_detector.py --story-id NEW_ID
 ```
 
 ### Step 3: Classify Conflicts

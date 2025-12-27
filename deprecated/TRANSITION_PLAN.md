@@ -165,7 +165,7 @@ Remove components that will be replaced by symlinks:
 cd C:\Users\Brahm\Git\SyncoPaid\.claude\skills
 rm -rf code-sentinel goal-synthesis prioritize-story-nodes
 rm -rf story-arborist story-building story-execution
-rm -rf story-planning story-tree story-verification story-vetting
+rm -rf story-planning story-tree story-verification concept-vetting
 
 cd C:\Users\Brahm\Git\SyncoPaid\.claude\commands
 rm -f ci-decompose-plan.md ci-execute-plan.md ci-identify-plan.md ci-review-plan.md
@@ -192,9 +192,9 @@ from pathlib import Path
 # Skills
 skills_src = Path('.StoryTree/claude/skills')
 skills_dst = Path('.claude/skills')
-for skill in ['code-sentinel', 'goal-synthesis', 'prioritize-story-nodes',
+for skill in ['code-sentinel', 'concept-vetting', 'goal-synthesis', 'prioritize-story-nodes',
               'story-arborist', 'story-building', 'story-execution',
-              'story-planning', 'story-tree', 'story-verification', 'story-vetting']:
+              'story-planning', 'story-tree', 'story-verification']:
     src = skills_src / skill
     dst = skills_dst / skill
     rel_path = os.path.relpath(src, skills_dst)

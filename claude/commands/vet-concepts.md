@@ -7,7 +7,7 @@ Uses `DEFER_ESCALATED` for HUMAN_REVIEW cases (sets hold_reason to `escalated`).
 
 ## Execution
 
-Invoke `story-vetting` skill, then:
+Invoke `concept-vetting` skill, then:
 - Run Phase 1 candidate detection script
 - Classify each candidate pair
 - Execute automated actions (delete, merge, reject, block)
@@ -27,8 +27,8 @@ Invoke `story-vetting` skill, then:
 ## Expected Output
 
 ```
-STORY VETTING COMPLETE
-======================
+CONCEPT VETTING COMPLETE
+========================
 
 Candidates scanned: N
 Actions taken:
