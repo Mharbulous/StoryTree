@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(ln:*)"
+      "Bash(ln:*)",
+      "Bash(powershell:*)",
+      "Bash(cmd //c \"dir .claude\\\\skills && echo ---- && mklink /J .claude\\\\skills\\\\streamline claude\\\\skills\\\\streamline\")",
+      "Bash(findstr:*)"
     ]
   }
 }
