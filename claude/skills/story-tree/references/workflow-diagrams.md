@@ -51,47 +51,50 @@ Stories progress through stages, with holds and dispositions as orthogonal state
 - **hold_reason**: Why work is temporarily stopped (nullable)
 - **disposition**: Why the story was terminated (nullable)
 
-### Stage Transitions (Normal Workflow)
+### Stage
 
 ```mermaid
 flowchart TB
+    root((Stories))
+
     concept[concept]
-    concept_desc[New idea created]
+    concept_desc[New idea proposed]
 
     approved[approved]
-    approved_desc[Human approves]
+    approved_desc[Ready for own implementation planning; ready to receive child concept proposals]
 
     planned[planned]
-    planned_desc[Plan created]
+    planned_desc[Own implementation planned; dependencies verified; children have been approved]
 
     active[active]
-    active_desc[Dependencies met, work begins]
+    active_desc[Own code in progress; children's code in progress]
 
     reviewing[reviewing]
-    reviewing_desc[Code complete]
+    reviewing_desc[Own code under review; reviewing child code]
 
     verifying[verifying]
-    verifying_desc[Review passed]
+    verifying_desc[Own implementation being tested; verifying integration with children]
 
     implemented[implemented]
-    implemented_desc[Verification passed]
+    implemented_desc[Own code complete; all children implemented and integrated]
 
     ready[ready]
-    ready_desc[Fully tested]
+    ready_desc[Own work fully tested; entire subtree fully tested]
 
     released[released]
     released_desc[Shipped]
 
-    concept --> concept_desc --> approved
-    approved --> approved_desc --> planned
-    planned --> planned_desc --> active
-    active --> active_desc --> reviewing
-    reviewing --> reviewing_desc --> verifying
-    verifying --> verifying_desc --> implemented
-    implemented --> implemented_desc --> ready
-    ready --> ready_desc --> released
-    released --> released_desc
+    root --> concept --> concept_desc
+    root --> approved --> approved_desc
+    root --> planned --> planned_desc
+    root --> active --> active_desc
+    root --> reviewing --> reviewing_desc
+    root --> verifying --> verifying_desc
+    root --> implemented --> implemented_desc
+    root --> ready --> ready_desc
+    root --> released --> released_desc
 
+    classDef rootStyle fill:#888888,stroke:#666,color:#fff
     classDef conceptStyle fill:#66CC00,stroke:#52A300,color:#fff
     classDef approvedStyle fill:#00CC33,stroke:#00A329,color:#fff
     classDef plannedStyle fill:#00CC99,stroke:#00A37A,color:#fff
@@ -102,6 +105,7 @@ flowchart TB
     classDef readyStyle fill:#3300CC,stroke:#2900A3,color:#fff
     classDef releasedStyle fill:#6600CC,stroke:#5200A3,color:#fff
 
+    class root rootStyle
     class concept conceptStyle
     class approved approvedStyle
     class planned plannedStyle
@@ -113,25 +117,7 @@ flowchart TB
     class released releasedStyle
 ```
 
-### Multi-Faceted Stage Meanings
-
-Each stage represents multiple facets that apply simultaneously. A node can have its own direct work AND organize child work at the same time—these are not mutually exclusive.
-
-| Stage | Facets (all apply at once) |
-|-------|----------------------------|
-| `concept` | New idea proposed |
-| `approved` | Ready for own implementation planning; ready to receive child concept proposals |
-| `planned` | Own implementation planned; dependencies verified; children have been approved |
-| `active` | Own code in progress; children's code in progress |
-| `reviewing` | Own code under review; reviewing child code |
-| `verifying` | Own implementation being tested; verifying integration with children |
-| `implemented` | Own code complete; all children implemented and integrated |
-| `ready` | Own work fully tested; entire subtree fully tested |
-| `released` | Shipped |
-
-**Key insight:** A node cannot reach `implemented` until both its own work is complete AND all children have reached `implemented` or later. This keeps attention focused on incomplete work rather than dispersing it up the hierarchy.
-
-### Hold States (Temporary, Preserves Stage)
+### Hold Status
 
 ```mermaid
 flowchart TB
@@ -193,7 +179,7 @@ flowchart TB
     class wishlisted,wishlisted_desc wishlistedStyle
 ```
 
-### Disposition States (Terminal)
+### Disposition
 
 ```mermaid
 flowchart TB
@@ -229,6 +215,48 @@ flowchart TB
 
     class root notDisposed
     class infeasible,infeasible_desc,rejected,rejected_desc,duplicative,duplicative_desc,deprecated,deprecated_desc,legacy,legacy_desc,archived,archived_desc terminalStyle
+```
+
+### Stage Transitions
+
+```mermaid
+sequenceDiagram
+    box rgb(102,204,0) concept
+        participant concept
+    end
+    box rgb(0,204,51) approved
+        participant approved
+    end
+    box rgb(0,204,153) planned
+        participant planned
+    end
+    box rgb(0,153,204) active
+        participant active
+    end
+    box rgb(0,102,204) reviewing
+        participant reviewing
+    end
+    box rgb(0,51,204) verifying
+        participant verifying
+    end
+    box rgb(0,0,204) implemented
+        participant implemented
+    end
+    box rgb(51,0,204) ready
+        participant ready
+    end
+    box rgb(102,0,204) released
+        participant released
+    end
+
+    concept->>approved: Human approves
+    approved->>planned: Plan created
+    planned->>active: Work begins
+    active->>reviewing: Code complete
+    reviewing->>verifying: Review passed
+    verifying->>implemented: Verification passed
+    implemented->>ready: Fully tested
+    ready->>released: Shipped
 ```
 
 ---
