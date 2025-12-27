@@ -133,53 +133,55 @@ python src/setup.py unregister --target /path/to/Project
 
 The `update-all` command copies workflows to all registered projects at once, then prompts you to commit the changes in each project.
 
+## Component Organization
+
+Components are organized by their usage scope using a dot-prefix convention:
+
+| Usage Scope | Location | Description |
+|-------------|----------|-------------|
+| **StoryTree only** | `.claude/`, `.github/` | Components active only in StoryTree |
+| **Dependents only** | `claude/`, `github/` | Components exported to dependent repos |
+| **Both** | `claude/`, `github/` + symlinks | Shared components (source in non-dot, symlink in dot) |
+
+**Exception:** `src/setup.py` is used by both StoryTree and dependents.
+
+**How it works:**
+- Claude Code reads from `.claude/` — this is what's "active" in a project
+- GitHub Actions read from `.github/` — this is what runs in a project
+- Dependent repos get components from `claude/` and `github/` via symlinks or copies
+- To share a component with dependents, place it in `claude/` or `github/` and optionally symlink from `.claude/` or `.github/` if StoryTree also uses it
+
 ## Directory Structure
 
 ```
 StoryTree/
 ├── README.md
-├── TRANSITION_PLAN.md       # Migration documentation
+├── CLAUDE.md
 ├── src/
-│   └── setup.py             # Installation & dependent management
-├── ai_docs/
-│   └── Handovers/           # Development handover docs
-├── .claude/
-│   ├── skills/              # Claude Code skills (10)
-│   │   ├── story-tree/      # Core tree operations
-│   │   ├── story-planning/  # Story planning workflow
-│   │   ├── story-execution/ # Story execution
-│   │   ├── story-building/  # Story building
-│   │   ├── concept-vetting/ # Concept vetting & dedup
-│   │   ├── story-verification/
-│   │   ├── story-arborist/  # Tree maintenance
-│   │   ├── prioritize-story-nodes/
-│   │   ├── code-sentinel/   # Code quality patterns
-│   │   └── goal-synthesis/  # Goal management
-│   ├── commands/            # Slash commands (10)
-│   │   ├── ci-create-plan.md
-│   │   ├── write-story.md
-│   │   ├── ci-generate-concept.md
-│   │   ├── review-stories.md
-│   │   ├── vet-concepts.md
-│   │   ├── synthesize-goals.md
-│   │   └── ci-*.md          # CI pipeline commands
-│   ├── scripts/             # Helper scripts (5)
-│   │   ├── story_workflow.py
-│   │   ├── prioritize_stories.py
-│   │   ├── story_tree_helpers.py
-│   │   ├── insert_story.py
-│   │   └── generate_vision_doc.py
-│   └── data/                # Data management scripts
-│       ├── init_story_tree.py
-│       ├── insert_stories.py
-│       └── verify_root.py
-├── github/
-│   ├── workflows/           # GitHub Actions workflows
+│   └── setup.py             # Installation & management (used by both)
+│
+├── .claude/                 # Active in StoryTree
+│   ├── skills/              # StoryTree-only skills
+│   ├── commands/            # StoryTree-only commands
+│   ├── scripts/             # Helper scripts
+│   └── data/                # Database & scripts
+│
+├── .github/                 # Active in StoryTree
+│   └── workflows/           # StoryTree-only workflows
+│
+├── claude/                  # Exported to dependents
+│   ├── skills/              # Shared skills (story-tree, story-planning, etc.)
+│   └── commands/            # Shared commands (ci-*.md, write-story.md, etc.)
+│
+├── github/                  # Exported to dependents
+│   ├── workflows/           # Shared workflows (story-tree-orchestrator.yml, etc.)
 │   └── actions/             # Custom composite actions
+│
 ├── gui/                     # Xstory visual explorer
-│   ├── xstory.py            # Main PySide6 GUI
+│   ├── xstory.py
 │   ├── requirements.txt
 │   └── tests/
+│
 └── templates/
     └── story-tree.db.empty  # Empty database template
 ```

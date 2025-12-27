@@ -50,19 +50,38 @@ python -m pytest gui/tests/ -v
 
 ## Architecture
 
+### Component Organization Convention
+
+Components are organized based on their usage scope:
+
+| Usage Scope | Location | Examples |
+|-------------|----------|----------|
+| **StoryTree only** | `.claude/`, `.github/` | StoryTree-specific skills, internal workflows |
+| **Dependents only** | `claude/`, `github/` | Skills/commands/workflows for dependent repos |
+| **Both** | `claude/`, `github/` with symlinks from `.claude/`, `.github/` | Shared components used by both |
+
+**Exception:** `src/setup.py` is used by both StoryTree and dependents (handles installation and dependent management).
+
+**Key principle:** The dot-prefixed directories (`.claude/`, `.github/`) are what Claude Code and GitHub Actions read. The non-dot directories (`claude/`, `github/`) contain exportable components for dependent repos.
+
 ### Directory Structure
 
-- `.claude/` - Claude Code integration components
-  - `skills/` - 10 Claude Code skills (story-tree, story-planning, story-execution, etc.)
-  - `commands/` - 10 slash commands (ci-create-plan.md, write-story.md, ci-*.md, etc.)
-  - `scripts/` - Helper Python scripts for story operations
-  - `data/` - Database initialization and migration scripts
-- `gui/` - Xstory visual tree explorer (PySide6)
-  - `xstory.py` - Main 99K LOC GUI application
-  - `migrate_*.py` - Database migration scripts
-- `github/` - GitHub Actions workflows and composite actions
-  - `workflows/` - CI pipeline workflows (story orchestrator, execution, review, etc.)
+- `.claude/` - Claude Code components **active in StoryTree**
+  - `skills/` - StoryTree-only skills (e.g., `streamline`)
+  - `commands/` - StoryTree-only commands
+  - `scripts/` - Helper Python scripts
+  - `data/` - Database scripts and `story-tree.db`
+- `.github/` - GitHub workflows **active in StoryTree**
+  - `workflows/` - StoryTree-only workflows (e.g., `notify-dependents.yml`)
+- `claude/` - Components **exported to dependent repos**
+  - `skills/` - Shared skills (story-tree, story-planning, etc.)
+  - `commands/` - Shared commands (ci-*.md, write-story.md, etc.)
+- `github/` - GitHub components **exported to dependent repos**
+  - `workflows/` - Shared workflows (story-tree-orchestrator.yml, etc.)
   - `actions/` - Custom composite actions
+- `src/` - Shared utilities
+  - `setup.py` - Installation and dependent management (used by both)
+- `gui/` - Xstory visual tree explorer (PySide6)
 - `templates/` - Empty database template (`story-tree.db.empty`)
 
 ### Database Schema
