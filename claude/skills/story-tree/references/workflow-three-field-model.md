@@ -94,8 +94,6 @@ flowchart LR
     class released releasedBox
 ```
 
-**Key principle:** "No hold" in any stage = ready to transition to the next stage's queue. The hold system is the universal gating mechanism.
-
 ---
 
 ## Detailed Stage Workflows
