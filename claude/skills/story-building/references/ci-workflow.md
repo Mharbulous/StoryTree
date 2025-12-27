@@ -146,9 +146,9 @@ conn.close()
 "
 ```
 
-**Step 6: Vet Story**
+**Step 6: Vet Concept**
 ```bash
-python .claude/skills/story-vetting/candidate_detector.py --story-id NEW_ID
+python .claude/skills/concept-vetting/candidate_detector.py --story-id NEW_ID
 ```
 
 #### CI Conflict Resolution

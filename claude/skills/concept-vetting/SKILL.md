@@ -1,10 +1,10 @@
 ---
-name: story-vetting
-description: Use when orchestrator generates new stories or user says "vet stories", "check conflicts", "find duplicates", "scan for overlaps" - scans story-tree database to detect duplicate, overlapping, or competing stories. Returns conflict pairs with types and confidence scores for human review.
+name: concept-vetting
+description: Use when orchestrator generates new concepts or user says "vet concepts", "check conflicts", "find duplicates", "scan for overlaps" - scans story-tree database to detect duplicate, overlapping, or competing concepts. Returns conflict pairs with types and confidence scores for human review.
 disable-model-invocation: true
 ---
 
-# Story Vetting - Automated Concept Conflict Resolution
+# Concept Vetting - Automated Concept Conflict Resolution
 
 Detect and resolve conflicting concepts in the story-tree database. This skill **vets concepts** before presenting them to humans - most conflicts are resolved automatically.
 
@@ -143,13 +143,13 @@ When reporting cache activity, use specific language:
 
 ```bash
 # Run schema migration (safe to run multiple times)
-python .claude/skills/story-vetting/vetting_cache.py migrate
+python .claude/skills/concept-vetting/vetting_cache.py migrate
 
 # View cache statistics
-python .claude/skills/story-vetting/vetting_cache.py stats
+python .claude/skills/concept-vetting/vetting_cache.py stats
 
 # Clear all cached decisions
-python .claude/skills/story-vetting/vetting_cache.py clear
+python .claude/skills/concept-vetting/vetting_cache.py clear
 ```
 
 ---
@@ -159,7 +159,7 @@ python .claude/skills/story-vetting/vetting_cache.py clear
 Run the detector script to find candidate conflict pairs:
 
 ```bash
-python .claude/skills/story-vetting/candidate_detector.py
+python .claude/skills/concept-vetting/candidate_detector.py
 ```
 
 **What it does:** Scans all stories, applies keyword/similarity heuristics, filters cached false_positives, outputs candidate pairs as JSON.
@@ -248,7 +248,7 @@ def get_action(conflict_type, eff_status_a, eff_status_b, ci_mode=False):
 
 ### Step 3: Execute Action
 
-Use the actions script: `python .claude/skills/story-vetting/vetting_actions.py <action> <args...>`
+Use the actions script: `python .claude/skills/concept-vetting/vetting_actions.py <action> <args...>`
 
 | Action | Command | Description |
 |--------|---------|-------------|

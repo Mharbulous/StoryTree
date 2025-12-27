@@ -10,7 +10,7 @@
 flowchart TB
     subgraph concept_stage [concept]
         c_clear[no hold]
-        c_ai((AI review))
+        c_ai((🤖 vet concept))
         c_refine((AI refines))
         c_conf[conflicted]
         c_dup[duplicative]

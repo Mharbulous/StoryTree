@@ -96,9 +96,9 @@ import os
 from pathlib import Path
 os.chdir('.')
 
-skills = ['code-sentinel', 'goal-synthesis', 'prioritize-story-nodes',
+skills = ['code-sentinel', 'concept-vetting', 'goal-synthesis', 'prioritize-story-nodes',
           'story-arborist', 'story-building', 'story-execution',
-          'story-planning', 'story-tree', 'story-verification', 'story-vetting']
+          'story-planning', 'story-tree', 'story-verification']
 for skill in skills:
     src = Path(f'StoryTree/claude/skills/{skill}')
     dst = Path(f'.claude/skills/{skill}')

@@ -148,7 +148,7 @@ Disposition: rejected | infeasible | deprecated | archived | legacy (terminal)
 | Task | Command |
 |------|---------|
 | Find capacity | `python .claude/scripts/story_workflow.py --ci` |
-| Vet story | `python .claude/skills/story-vetting/candidate_detector.py --story-id ID` |
+| Vet concept | `python .claude/skills/concept-vetting/candidate_detector.py --story-id ID` |
 | View tree | `python .claude/skills/story-tree/scripts/tree-view.py` |
 
 ---
@@ -165,6 +165,6 @@ Disposition: rejected | infeasible | deprecated | archived | legacy (terminal)
 - **Validation:** `references/validation.md` - Pre-insertion quality checks
 
 ### External
-- **Story Vetting:** `.claude/skills/story-vetting/SKILL.md`
+- **Concept Vetting:** `.claude/skills/concept-vetting/SKILL.md`
 - **Story Tree:** `.claude/skills/story-tree/SKILL.md`
 - **Goals:** `.claude/data/goals/goals.md`, `.claude/data/goals/non-goals.md`

@@ -1,7 +1,7 @@
 name: "Story Tree Orchestrator"
 
 # Looping workflow that drains the pipeline before adding new work (v4 design)
-# Runs: plan-stories FIRST (drain approved), then write-stories (fill capacity), then vet-stories (resolve conflicts)
+# Runs: plan-stories FIRST (drain approved), then write-stories (fill capacity), then vet concepts (resolve conflicts)
 # Loops until both NO_APPROVED and NO_CAPACITY, or max_cycles reached
 
 on:
@@ -269,27 +269,27 @@ jobs:
               fi
             fi
 
-            # Step 3: Vet stories (resolve conflicts)
+            # Step 3: Vet concepts (resolve conflicts)
             echo ""
-            echo "--- Step 3: Vet stories (resolve conflicts) ---"
+            echo "--- Step 3: Vet concepts (resolve conflicts) ---"
 
             # Pull latest before vetting
             git pull origin main --rebase || true
 
-            # Invoke Claude Code for story vetting with JSON output
+            # Invoke Claude Code for concept vetting with JSON output
             vet_output=$(claude --print --dangerously-skip-permissions \
               --output-format json \
               --allowedTools "Task,Read,Write,Edit,Glob,Grep,Bash(git:*),Bash(python:*),Bash(python3:*),Bash(sqlite3:*),Bash(pip:*),BashOutput,Skill,SlashCommand,TodoWrite" \
               --model claude-sonnet-4-5-20250929 \
-              "MODE: Story Vetting (CI - autonomous)
+              "MODE: Vet Concepts (CI - autonomous)
 
-            Invoke the story-vetting skill to detect and resolve conflicting concepts.
+            Invoke the concept-vetting skill to detect and resolve conflicting concepts.
             CI mode is ACTIVE - use DEFER_PENDING for HUMAN_REVIEW cases.
 
-            Execute: Skill(skill=\"story-vetting\")
+            Execute: Skill(skill=\"concept-vetting\")
 
             After vetting, DO NOT commit - the orchestrator handles git operations." 2>&1) || {
-              echo "::warning::Claude Code vetting step returned non-zero"
+              echo "::warning::Claude Code concept vetting step returned non-zero"
             }
 
             # Parse token usage from JSON output

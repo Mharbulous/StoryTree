@@ -5,7 +5,7 @@ This module consolidates database operations used across multiple story-related 
 to ensure DRY principles and consistent behavior.
 
 Usage:
-    # From story-vetting scripts:
+    # From concept-vetting scripts:
     import sys
     import os
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'story-tree', 'utility'))

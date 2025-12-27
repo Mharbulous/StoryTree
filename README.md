@@ -57,9 +57,9 @@ from pathlib import Path
 # Skills (10 total)
 skills_src = Path('.StoryTree/claude/skills')
 skills_dst = Path('.claude/skills')
-for skill in ['code-sentinel', 'goal-synthesis', 'prioritize-story-nodes',
+for skill in ['code-sentinel', 'concept-vetting', 'goal-synthesis', 'prioritize-story-nodes',
               'story-arborist', 'story-building', 'story-execution',
-              'story-planning', 'story-tree', 'story-verification', 'story-vetting']:
+              'story-planning', 'story-tree', 'story-verification']:
     src = skills_src / skill
     dst = skills_dst / skill
     rel_path = os.path.relpath(src, skills_dst)
@@ -70,7 +70,7 @@ cmds_src = Path('.StoryTree/claude/commands')
 cmds_dst = Path('.claude/commands')
 for cmd in ['ci-decompose-plan.md', 'ci-execute-plan.md', 'ci-identify-plan.md',
             'ci-create-plan.md', 'ci-generate-concept.md', 'ci-review-plan.md',
-            'review-stories.md', 'synthesize-goals.md', 'vet-stories.md', 'write-story.md']:
+            'review-stories.md', 'synthesize-goals.md', 'vet-concepts.md', 'write-story.md']:
     src = cmds_src / cmd
     dst = cmds_dst / cmd
     rel_path = os.path.relpath(src, cmds_dst)
@@ -148,7 +148,7 @@ StoryTree/
 │   │   ├── story-planning/  # Story planning workflow
 │   │   ├── story-execution/ # Story execution
 │   │   ├── story-building/  # Story building
-│   │   ├── story-vetting/   # Story vetting & dedup
+│   │   ├── concept-vetting/ # Concept vetting & dedup
 │   │   ├── story-verification/
 │   │   ├── story-arborist/  # Tree maintenance
 │   │   ├── prioritize-story-nodes/
@@ -159,7 +159,7 @@ StoryTree/
 │   │   ├── write-story.md
 │   │   ├── ci-generate-concept.md
 │   │   ├── review-stories.md
-│   │   ├── vet-stories.md
+│   │   ├── vet-concepts.md
 │   │   ├── synthesize-goals.md
 │   │   └── ci-*.md          # CI pipeline commands
 │   ├── scripts/             # Helper scripts (5)
