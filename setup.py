@@ -535,6 +535,257 @@ def cmd_init_db(args) -> None:
     init_database(xstory_root, target)
 
 
+def diagnose_git_config(target: Path) -> dict:
+    """Check git configuration status.
+
+    Returns dict with 'symlinks' and 'recurse' keys, each containing:
+    - 'status': 'ok', 'warning', or 'error'
+    - 'value': current value or None
+    - 'message': description
+    """
+    results = {}
+    git_dir = target / '.git'
+
+    if not git_dir.exists():
+        return {
+            'symlinks': {'status': 'error', 'value': None, 'message': 'Not a git repository'},
+            'recurse': {'status': 'error', 'value': None, 'message': 'Not a git repository'}
+        }
+
+    # Check core.symlinks
+    try:
+        result = subprocess.run(
+            ['git', '-C', str(target), 'config', '--local', '--get', 'core.symlinks'],
+            capture_output=True, text=True
+        )
+        value = result.stdout.strip().lower()
+        if value == 'true':
+            results['symlinks'] = {'status': 'ok', 'value': 'true', 'message': 'Symlinks enabled'}
+        elif value == 'false':
+            results['symlinks'] = {'status': 'error', 'value': 'false', 'message': 'Symlinks disabled - will create text files instead'}
+        else:
+            results['symlinks'] = {'status': 'warning', 'value': None, 'message': 'Not set (inherits from global/system)'}
+    except FileNotFoundError:
+        results['symlinks'] = {'status': 'error', 'value': None, 'message': 'git not found'}
+
+    # Check submodule.recurse
+    try:
+        result = subprocess.run(
+            ['git', '-C', str(target), 'config', '--local', '--get', 'submodule.recurse'],
+            capture_output=True, text=True
+        )
+        value = result.stdout.strip().lower()
+        if value == 'true':
+            results['recurse'] = {'status': 'ok', 'value': 'true', 'message': 'Auto-update enabled'}
+        else:
+            results['recurse'] = {'status': 'warning', 'value': value or None, 'message': 'Not set - manual submodule updates required'}
+    except FileNotFoundError:
+        results['recurse'] = {'status': 'error', 'value': None, 'message': 'git not found'}
+
+    return results
+
+
+def diagnose_symlinks_detailed(target: Path, xstory_root: Path) -> dict:
+    """Analyze symlink health in detail.
+
+    Returns dict with category keys (skills, commands, scripts, data), each containing:
+    - 'valid': list of valid symlink names
+    - 'broken': list of broken symlink names (symlink exists but target missing)
+    - 'text_files': list of text files pretending to be symlinks
+    - 'missing': list of expected items not present
+    - 'extra': list of non-symlink items (local files/dirs)
+    """
+    claude_dir = target / '.claude'
+    results = {}
+
+    categories = {
+        'skills': (xstory_root / 'claude' / 'skills', lambda p: p.is_dir()),
+        'commands': (xstory_root / 'claude' / 'commands', lambda p: p.is_file() and p.suffix == '.md'),
+        'scripts': (xstory_root / 'claude' / 'scripts', lambda p: p.is_file() and p.suffix == '.py'),
+        'data': (xstory_root / 'claude' / 'data', lambda p: p.is_file() and p.suffix == '.py'),
+    }
+
+    for category, (src_dir, filter_fn) in categories.items():
+        results[category] = {
+            'valid': [],
+            'broken': [],
+            'text_files': [],
+            'missing': [],
+            'extra': []
+        }
+
+        dest_dir = claude_dir / category
+        if not dest_dir.exists():
+            # All expected items are missing
+            if src_dir.exists():
+                expected = [item.name for item in src_dir.iterdir() if filter_fn(item)]
+                results[category]['missing'] = expected
+            continue
+
+        # Get expected items from source
+        expected_names = set()
+        if src_dir.exists():
+            expected_names = {item.name for item in src_dir.iterdir() if filter_fn(item)}
+
+        # Check each item in destination
+        for item in dest_dir.iterdir():
+            name = item.name
+
+            if item.is_symlink():
+                # Check if symlink target exists
+                try:
+                    if item.resolve().exists():
+                        results[category]['valid'].append(name)
+                    else:
+                        results[category]['broken'].append(name)
+                except OSError:
+                    results[category]['broken'].append(name)
+            elif is_broken_symlink_file(item):
+                results[category]['text_files'].append(name)
+            elif name in expected_names:
+                # It's a regular file/dir where we expect a symlink
+                results[category]['extra'].append(name)
+
+        # Find missing items
+        present_names = set(results[category]['valid'] + results[category]['broken'] +
+                          results[category]['text_files'] + results[category]['extra'])
+        results[category]['missing'] = list(expected_names - present_names)
+
+    return results
+
+
+def cmd_diagnose(args) -> None:
+    """Diagnose StoryTree installation health in a target project."""
+    xstory_root = get_xstory_root()
+    target = Path(args.target).resolve()
+
+    # Use ASCII-safe symbols for Windows compatibility
+    SYM_OK = '[OK]'
+    SYM_WARN = '[!!]'
+    SYM_ERR = '[X]'
+    SYM_INFO = '[-]'
+
+    print("StoryTree Health Check")
+    print("=" * 50)
+    print(f"Target: {target}")
+    print()
+
+    issues_found = 0
+
+    # Check if target exists
+    if not target.exists():
+        print(f"Error: Target directory does not exist")
+        sys.exit(1)
+
+    # Check submodule
+    print("Submodule:")
+    submodule_path = target / '.StoryTree'
+    if submodule_path.exists():
+        # Check if it has content
+        if (submodule_path / 'claude').exists():
+            print(f"  {SYM_OK} .StoryTree submodule present and initialized")
+        else:
+            print(f"  {SYM_ERR} .StoryTree submodule present but NOT initialized")
+            print("    Run: git submodule update --init --recursive")
+            issues_found += 1
+    else:
+        print(f"  {SYM_INFO} .StoryTree submodule not present (using external StoryTree)")
+    print()
+
+    # Check git configuration
+    print("Git Configuration:")
+    git_config = diagnose_git_config(target)
+
+    for setting, info in git_config.items():
+        if info['status'] == 'ok':
+            symbol = SYM_OK
+        elif info['status'] == 'warning':
+            symbol = SYM_WARN
+        else:
+            symbol = SYM_ERR
+        setting_name = 'core.symlinks' if setting == 'symlinks' else 'submodule.recurse'
+        value_str = f" = {info['value']}" if info['value'] else ""
+        print(f"  {symbol} {setting_name}{value_str}")
+        if info['status'] != 'ok':
+            print(f"    {info['message']}")
+            if info['status'] == 'error':
+                issues_found += 1
+    print()
+
+    # Check Windows symlink support
+    if platform.system() == 'Windows':
+        print("Windows Symlink Support:")
+        if check_windows_symlink_support():
+            print(f"  {SYM_OK} Developer Mode enabled (symlinks work)")
+        else:
+            print(f"  {SYM_ERR} Developer Mode NOT enabled")
+            print("    Enable at: Settings > Privacy & Security > For developers")
+            issues_found += 1
+        print()
+
+    # Check symlinks
+    print("Symlinks:")
+    symlink_results = diagnose_symlinks_detailed(target, xstory_root)
+
+    for category, info in symlink_results.items():
+        valid_count = len(info['valid'])
+        broken_count = len(info['broken'])
+        text_count = len(info['text_files'])
+        missing_count = len(info['missing'])
+        extra_count = len(info['extra'])
+
+        total_expected = valid_count + broken_count + text_count + missing_count
+        problem_count = broken_count + text_count + missing_count
+
+        if problem_count == 0 and valid_count > 0:
+            print(f"  {SYM_OK} {category}: {valid_count} valid")
+            if extra_count > 0:
+                print(f"    + {extra_count} local file(s): {', '.join(info['extra'][:3])}{'...' if extra_count > 3 else ''}")
+        elif valid_count == 0 and total_expected == 0:
+            print(f"  {SYM_INFO} {category}: not installed")
+        else:
+            symbol = SYM_ERR if problem_count > 0 else SYM_OK
+            print(f"  {symbol} {category}: {valid_count} valid, {problem_count} issue(s)")
+            if broken_count > 0:
+                print(f"    Broken: {', '.join(info['broken'])}")
+                issues_found += broken_count
+            if text_count > 0:
+                print(f"    Text files (fake symlinks): {', '.join(info['text_files'])}")
+                issues_found += text_count
+            if missing_count > 0:
+                print(f"    Missing: {', '.join(info['missing'][:5])}{'...' if missing_count > 5 else ''}")
+                issues_found += missing_count
+    print()
+
+    # Check database
+    print("Database:")
+    db_path = target / '.claude' / 'data' / 'story-tree.db'
+    if db_path.exists():
+        try:
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM story_nodes")
+            count = cursor.fetchone()[0]
+            conn.close()
+            print(f"  {SYM_OK} story-tree.db exists ({count} stories)")
+        except Exception as e:
+            print(f"  {SYM_WARN} story-tree.db exists but may be corrupted: {e}")
+    else:
+        print(f"  {SYM_INFO} story-tree.db not initialized")
+        print("    Run: setup.py init-db --target ...")
+    print()
+
+    # Summary
+    print("=" * 50)
+    if issues_found == 0:
+        print(f"{SYM_OK} All checks passed - installation is healthy")
+    else:
+        print(f"{SYM_ERR} Found {issues_found} issue(s)")
+        print()
+        print("To fix, run:")
+        print(f"  python setup.py install --target \"{target}\"")
+
+
 def cmd_register(args) -> None:
     """Register a project as a StoryTree dependent."""
     target = Path(args.target).resolve()
@@ -666,6 +917,11 @@ def main() -> None:
     db_parser = subparsers.add_parser('init-db', help='Initialize story-tree.db in target project')
     db_parser.add_argument('--target', '-t', required=True, help='Target project directory')
     db_parser.set_defaults(func=cmd_init_db)
+
+    # diagnose command
+    diagnose_parser = subparsers.add_parser('diagnose', help='Check StoryTree installation health')
+    diagnose_parser.add_argument('--target', '-t', required=True, help='Target project directory')
+    diagnose_parser.set_defaults(func=cmd_diagnose)
 
     # register command
     register_parser = subparsers.add_parser('register', help='Register a project as a StoryTree dependent')
