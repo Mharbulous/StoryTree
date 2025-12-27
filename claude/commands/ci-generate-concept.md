@@ -1,4 +1,4 @@
-Generate user story concepts for the backlog.
+Generate a new concept for the story-tree backlog.
 
 ## CI Mode (Automated)
 
@@ -7,7 +7,7 @@ python .claude/scripts/story_workflow.py --ci
 ```
 
 - If `NO_CAPACITY`, exit successfully
-- Generate ONE story based on JSON output using target node's description
+- Generate ONE concept based on JSON output using target node's description
 - Avoid duplicates by reviewing existing children
 
 ```bash
@@ -22,7 +22,7 @@ Launch Xstory GUI then invoke the `story-writing` skill:
 venv\Scripts\activate && python dev-tools\xstory\xstory.py
 ```
 
-## Story Format
+## Concept Format
 
 ```
 Title: [Concise description]
@@ -40,6 +40,6 @@ Acceptance Criteria:
 ## Output Format (CI)
 
 ```
-Generated 1 story for node [PARENT_ID]:
+Generated 1 concept for node [PARENT_ID]:
   - [STORY_ID]: [Title]
 ```

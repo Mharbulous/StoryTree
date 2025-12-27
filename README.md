@@ -69,7 +69,7 @@ for skill in ['code-sentinel', 'goal-synthesis', 'prioritize-story-nodes',
 cmds_src = Path('.StoryTree/claude/commands')
 cmds_dst = Path('.claude/commands')
 for cmd in ['ci-decompose-plan.md', 'ci-execute-plan.md', 'ci-identify-plan.md',
-            'ci-review-plan.md', 'generate-stories.md', 'plan-story.md',
+            'ci-create-plan.md', 'ci-generate-concept.md', 'ci-review-plan.md',
             'review-stories.md', 'synthesize-goals.md', 'vet-stories.md', 'write-story.md']:
     src = cmds_src / cmd
     dst = cmds_dst / cmd
@@ -155,9 +155,9 @@ StoryTree/
 │   │   ├── code-sentinel/   # Code quality patterns
 │   │   └── goal-synthesis/  # Goal management
 │   ├── commands/            # Slash commands (10)
-│   │   ├── plan-story.md
+│   │   ├── ci-create-plan.md
 │   │   ├── write-story.md
-│   │   ├── generate-stories.md
+│   │   ├── ci-generate-concept.md
 │   │   ├── review-stories.md
 │   │   ├── vet-stories.md
 │   │   ├── synthesize-goals.md
@@ -234,7 +234,7 @@ See `claude/skills/story-tree/references/schema.sql` for full schema.
 Stories progress through these stages:
 
 ```
-concept → approved → planned → active → reviewing → verifying → implemented → ready → polish → released
+concept → planning → executing → reviewing → verifying → implemented → ready → released
 ```
 
 Stories can be held (queued, pending, blocked, etc.) or disposed (rejected, archived, etc.) at any stage.

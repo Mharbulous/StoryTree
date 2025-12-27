@@ -145,11 +145,11 @@ Maximum 10 stories. Examples:
 ## Three-Field Workflow
 
 ```
-Stage:       concept → approved → planned → active → implemented → ready → released
-                 ↑                    ↑         ↑
-Hold:         refine | wishlist ─────────────────┘
+Stage:       concept → planning → executing → reviewing → verifying → implemented → ready → released
+                 ↑                    ↑            ↑
+Hold:         polish | wishlisted ───────────────────┘
                                   (clears hold, returns to stage)
 
-Disposition: rejected | infeasible | deprecated | archived | legacy
+Disposition: rejected | infeasible | duplicative | deprecated | legacy | archived
              (terminal states - story is done/removed)
 ```

@@ -3,7 +3,7 @@ Scan story-tree database for duplicate, overlapping, or competing concepts.
 ## CI Mode
 
 CI mode auto-activates when `CI=true` env var is set.
-Uses `DEFER_PENDING` for HUMAN_REVIEW cases (sets status to `pending`).
+Uses `DEFER_ESCALATED` for HUMAN_REVIEW cases (sets hold_reason to `escalated`).
 
 ## Execution
 
@@ -42,6 +42,6 @@ Actions taken:
 
 ## Constraints
 
-- Only processes stories with `concept` status against other stories
+- Only processes stories with `concept` stage against other stories
 - Parent-child relationships are excluded from conflict detection
 - Non-concept vs non-concept pairs are ignored

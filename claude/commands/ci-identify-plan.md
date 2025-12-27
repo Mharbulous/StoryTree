@@ -35,7 +35,7 @@ The story_nodes table has these columns:
 - description: TEXT NOT NULL
 - story: TEXT (user story text: "As a... I want... So that...")
 - success_criteria: TEXT (acceptance criteria)
-- stage: TEXT (concept, approved, planned, active, reviewing, verifying, implemented, ready, polish, released)
+- stage: TEXT (concept, planning, executing, reviewing, verifying, implemented, ready, released)
 - hold_reason: TEXT (NULL if not held)
 - disposition: TEXT (NULL if active in pipeline)
 

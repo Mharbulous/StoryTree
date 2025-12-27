@@ -54,7 +54,7 @@ python -m pytest gui/tests/ -v
 
 - `claude/` - Claude Code integration components
   - `skills/` - 10 Claude Code skills (story-tree, story-planning, story-execution, etc.)
-  - `commands/` - 10 slash commands (plan-story.md, write-story.md, ci-*.md, etc.)
+  - `commands/` - 10 slash commands (ci-create-plan.md, write-story.md, ci-*.md, etc.)
   - `scripts/` - Helper Python scripts for story operations
   - `data/` - Database initialization and migration scripts
 - `gui/` - Xstory visual tree explorer (PySide6)
@@ -75,9 +75,9 @@ The story tree uses SQLite with a closure table pattern:
 - `vetting_decisions` - Entity resolution cache for deduplication
 
 **Three-Field Workflow System:**
-- **Stage** (10 values): concept → approved → planned → active → reviewing → verifying → implemented → ready → polish → released
-- **Hold Reason** (8 values + NULL): queued, pending, blocked, paused, broken, polish, conflict, wishlist
-- **Disposition** (6 values + NULL): rejected, infeasible, duplicative, legacy, deprecated, archived
+- **Stage** (8 values): concept → planning → executing → reviewing → verifying → implemented → ready → released
+- **Hold Reason** (8 values + NULL): broken, conflicted, blocked, escalated, paused, polish, queued, wishlisted
+- **Disposition** (6 values + NULL): infeasible, rejected, duplicative, deprecated, legacy, archived
 
 ### Story ID Format
 
