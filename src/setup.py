@@ -178,8 +178,8 @@ def check_source_directories(xstory_root: Path) -> bool:
     Returns True if all required directories exist, False otherwise.
     """
     required_dirs = [
-        xstory_root / '.claude' / 'skills',
-        xstory_root / '.claude' / 'commands',
+        xstory_root / 'claude' / 'skills',
+        xstory_root / 'claude' / 'commands',
         xstory_root / '.claude' / 'scripts',
         xstory_root / '.claude' / 'data',
         xstory_root / 'github' / 'workflows',
@@ -331,7 +331,7 @@ def copy_item(src: Path, dest: Path) -> None:
 
 def install_skills(xstory_root: Path, target: Path, use_symlinks: bool) -> None:
     """Install skills to target/.claude/skills/"""
-    src_dir = xstory_root / '.claude' / 'skills'
+    src_dir = xstory_root / 'claude' / 'skills'
     dest_dir = target / '.claude' / 'skills'
     ensure_directory(dest_dir)
 
@@ -347,7 +347,7 @@ def install_skills(xstory_root: Path, target: Path, use_symlinks: bool) -> None:
 
 def install_commands(xstory_root: Path, target: Path, use_symlinks: bool) -> None:
     """Install commands to target/.claude/commands/"""
-    src_dir = xstory_root / '.claude' / 'commands'
+    src_dir = xstory_root / 'claude' / 'commands'
     dest_dir = target / '.claude' / 'commands'
     ensure_directory(dest_dir)
 
@@ -436,7 +436,7 @@ def init_database(xstory_root: Path, target: Path) -> None:
         print(f"\nInitialized database from template: {dest}")
     else:
         # Create empty database with schema
-        schema_file = xstory_root / '.claude' / 'skills' / 'story-tree' / 'references' / 'schema.sql'
+        schema_file = xstory_root / 'claude' / 'skills' / 'story-tree' / 'references' / 'schema.sql'
         if schema_file.exists():
             conn = sqlite3.connect(dest)
             with open(schema_file) as f:
@@ -602,8 +602,8 @@ def diagnose_symlinks_detailed(target: Path, xstory_root: Path) -> dict:
     results = {}
 
     categories = {
-        'skills': (xstory_root / '.claude' / 'skills', lambda p: p.is_dir()),
-        'commands': (xstory_root / '.claude' / 'commands', lambda p: p.is_file() and p.suffix == '.md'),
+        'skills': (xstory_root / 'claude' / 'skills', lambda p: p.is_dir()),
+        'commands': (xstory_root / 'claude' / 'commands', lambda p: p.is_file() and p.suffix == '.md'),
         'scripts': (xstory_root / '.claude' / 'scripts', lambda p: p.is_file() and p.suffix == '.py'),
         'data': (xstory_root / '.claude' / 'data', lambda p: p.is_file() and p.suffix == '.py'),
     }
