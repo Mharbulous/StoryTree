@@ -97,32 +97,63 @@ Each stage represents multiple facets that apply simultaneously. A node can have
 ### Hold States (Temporary, Preserves Stage)
 
 ```mermaid
-mindmap
-  root((Any Stage))
-    ⏳ queued
-      Awaiting automated processing
-      Clear: Algorithm runs
-    ❓ escalated
-      Human review required
-      Clear: Human decides
-    ⏸ paused
-      Work paused
-      Clear: Resume work
-    ⊗ blocked
-      Missing dependency
-      Clear: Unblocked
-    ⚠ broken
-      Issues found
-      Clear: Fixed
-    ◇ polish
-      Needs refinement
-      Clear: Refinement complete
-    ⚡ conflicted
-      Story overlaps scope in inconsistent way
-      Clear: Human resolves conflict
-    ? wishlisted
-      Indefinite hold, maybe someday
-      Clear: Priority increases
+flowchart LR
+    root((No hold))
+
+    broken[🔥 broken]
+    broken_desc[Implementation has issues]
+
+    conflicted[⚔ conflicted]
+    conflicted_desc[Scope overlaps another story]
+
+    blocked[🚧 blocked]
+    blocked_desc[External dependency missing]
+    blocked_not[Not a choice to stop]
+
+    escalated[⏳ escalated]
+    escalated_desc[Requires human decision]
+
+    paused[⏸ paused]
+    paused_desc[Intentionally stopped]
+    paused_not[Not blocked by external factors]
+
+    polish[💎 polish]
+    polish_desc[Minor refinements before progressing]
+
+    queued[📋 queued]
+    queued_desc[Awaiting automated processing]
+
+    wishlisted[💭 wishlisted]
+    wishlisted_desc[Low priority, indefinite deferral]
+
+    root --> broken --> broken_desc
+    root --> conflicted --> conflicted_desc
+    root --> blocked --> blocked_desc --> blocked_not
+    root --> escalated --> escalated_desc
+    root --> paused --> paused_desc --> paused_not
+    root --> polish --> polish_desc
+    root --> queued --> queued_desc
+    root --> wishlisted --> wishlisted_desc
+
+    classDef nohold fill:#888888,stroke:#666,color:#fff
+    classDef brokenStyle fill:#CC4400,stroke:#AA3700,color:#fff
+    classDef conflictedStyle fill:#D25B00,stroke:#B04D00,color:#fff
+    classDef blockedStyle fill:#DB7100,stroke:#B95E00,color:#fff
+    classDef escalatedStyle fill:#E28B00,stroke:#C07600,color:#000
+    classDef pausedStyle fill:#E4A000,stroke:#C28800,color:#000
+    classDef polishStyle fill:#E6B200,stroke:#C49600,color:#000
+    classDef queuedStyle fill:#E8C200,stroke:#C6A300,color:#000
+    classDef wishlistedStyle fill:#EAD000,stroke:#C8B100,color:#000
+
+    class root nohold
+    class broken,broken_desc brokenStyle
+    class conflicted,conflicted_desc conflictedStyle
+    class blocked,blocked_desc,blocked_not blockedStyle
+    class escalated,escalated_desc escalatedStyle
+    class paused,paused_desc,paused_not pausedStyle
+    class polish,polish_desc polishStyle
+    class queued,queued_desc queuedStyle
+    class wishlisted,wishlisted_desc wishlistedStyle
 ```
 
 ### Disposition States (Terminal)
