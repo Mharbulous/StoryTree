@@ -301,13 +301,16 @@ def create_symlink(src: Path, dest: Path) -> None:
         else:
             dest.unlink()
 
+    # Calculate relative path from dest's parent to src for portability
+    rel_path = os.path.relpath(src, dest.parent)
+
     # On Windows, directory symlinks need special handling
     if platform.system() == 'Windows' and src.is_dir():
-        os.symlink(src, dest, target_is_directory=True)
+        os.symlink(rel_path, dest, target_is_directory=True)
     else:
-        os.symlink(src, dest)
+        os.symlink(rel_path, dest)
 
-    print(f"  Symlinked: {dest.name} -> {src}")
+    print(f"  Symlinked: {dest.name} -> {rel_path}")
 
 
 def copy_item(src: Path, dest: Path) -> None:
