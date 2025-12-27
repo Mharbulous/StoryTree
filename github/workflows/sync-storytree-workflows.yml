@@ -51,7 +51,7 @@ jobs:
           echo "Submodule updated to: $(cd .StoryTree && git rev-parse HEAD)"
 
       - name: Sync from StoryTree
-        run: python .StoryTree/src/setup.py install --ci --target .
+        run: python .StoryTree/setup.py install --ci --target .
 
       - name: Check for changes
         id: changes
