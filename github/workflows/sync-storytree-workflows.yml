@@ -32,7 +32,6 @@ jobs:
       cancel-in-progress: true
     permissions:
       contents: write
-      workflows: write
 
     steps:
       - name: Checkout repository
