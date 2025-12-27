@@ -19,6 +19,8 @@ Visual representations of the database schema and closure table patterns used by
 
 The closure table pattern stores all ancestor-descendant relationships, enabling efficient hierarchy queries without recursion.
 
+For details on `stage`, `hold_reason`, and `disposition` values, see @workflow-three-field-model.md. For the complete SQL schema including constraints and indexes, see @schema.sql.
+
 ```mermaid
 erDiagram
     story_nodes {
@@ -32,8 +34,10 @@ erDiagram
         int human_review
         text project_path
         text last_implemented
+        text notes
         text created_at
         text updated_at
+        int version
     }
 
     story_paths {
@@ -49,6 +53,17 @@ erDiagram
         text commit_message
     }
 
+    vetting_decisions {
+        text pair_key PK
+        text story_a_id FK
+        int story_a_version
+        text story_b_id FK
+        int story_b_version
+        text classification
+        text action_taken
+        text decided_at
+    }
+
     metadata {
         text key PK
         text value
@@ -57,29 +72,31 @@ erDiagram
     story_nodes ||--o{ story_paths : "ancestor"
     story_nodes ||--o{ story_paths : "descendant"
     story_nodes ||--o{ story_commits : "linked"
+    story_nodes ||--o{ vetting_decisions : "story_a"
+    story_nodes ||--o{ vetting_decisions : "story_b"
 ```
 
 ---
 
 ## Closure Table Path Example
 
-This diagram illustrates how the closure table stores paths for a simple three-node hierarchy.
+This diagram illustrates how the closure table stores paths for a simple three-node hierarchy. Note the ID format: first-level children of root are plain integers (`1`, `2`), while deeper nodes use dotted format (`1.1`, `1.1.1`).
 
 ```mermaid
 flowchart TD
     subgraph Tree Structure
-        ROOT[root] --> N1[1.1]
-        N1 --> N2[1.1.1]
+        ROOT[root] --> N1[1]
+        N1 --> N2[1.1]
     end
 
     subgraph Closure Table Entries
         direction LR
         P1["(root, root, 0)"]
-        P2["(root, 1.1, 1)"]
-        P3["(root, 1.1.1, 2)"]
-        P4["(1.1, 1.1, 0)"]
-        P5["(1.1, 1.1.1, 1)"]
-        P6["(1.1.1, 1.1.1, 0)"]
+        P2["(root, 1, 1)"]
+        P3["(root, 1.1, 2)"]
+        P4["(1, 1, 0)"]
+        P5["(1, 1.1, 1)"]
+        P6["(1.1, 1.1, 0)"]
     end
 
     ROOT -.-> P1
@@ -104,7 +121,7 @@ sequenceDiagram
     participant N as story_nodes
     participant P as story_paths
 
-    S->>N: INSERT new node (id, title, description, status)
+    S->>N: INSERT new node (id, title, description, stage)
     N-->>S: Node created
 
     S->>P: SELECT all paths where descendant = parent_id
