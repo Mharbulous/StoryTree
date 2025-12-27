@@ -54,26 +54,63 @@ Stories progress through stages, with holds and dispositions as orthogonal state
 ### Stage Transitions (Normal Workflow)
 
 ```mermaid
-stateDiagram-v2
-    [*] --> concept: New idea created
+flowchart TB
+    concept[concept]
+    concept_desc[New idea created]
 
-    concept --> approved: Human approves
+    approved[approved]
+    approved_desc[Human approves]
 
-    approved --> planned: Plan created
+    planned[planned]
+    planned_desc[Plan created]
 
-    planned --> active: Dependencies met, work begins
+    active[active]
+    active_desc[Dependencies met, work begins]
 
-    active --> reviewing: Code complete
+    reviewing[reviewing]
+    reviewing_desc[Code complete]
 
-    reviewing --> verifying: Review passed
+    verifying[verifying]
+    verifying_desc[Review passed]
 
-    verifying --> implemented: Verification passed
+    implemented[implemented]
+    implemented_desc[Verification passed]
 
-    implemented --> ready: Fully tested
+    ready[ready]
+    ready_desc[Fully tested]
 
-    ready --> released: Shipped
+    released[released]
+    released_desc[Shipped]
 
-    released --> [*]
+    concept --> concept_desc --> approved
+    approved --> approved_desc --> planned
+    planned --> planned_desc --> active
+    active --> active_desc --> reviewing
+    reviewing --> reviewing_desc --> verifying
+    verifying --> verifying_desc --> implemented
+    implemented --> implemented_desc --> ready
+    ready --> ready_desc --> released
+    released --> released_desc
+
+    classDef conceptStyle fill:#66CC00,stroke:#52A300,color:#fff
+    classDef approvedStyle fill:#00CC33,stroke:#00A329,color:#fff
+    classDef plannedStyle fill:#00CC99,stroke:#00A37A,color:#fff
+    classDef activeStyle fill:#0099CC,stroke:#007AA3,color:#fff
+    classDef reviewingStyle fill:#0066CC,stroke:#0052A3,color:#fff
+    classDef verifyingStyle fill:#0033CC,stroke:#0029A3,color:#fff
+    classDef implementedStyle fill:#0000CC,stroke:#0000A3,color:#fff
+    classDef readyStyle fill:#3300CC,stroke:#2900A3,color:#fff
+    classDef releasedStyle fill:#6600CC,stroke:#5200A3,color:#fff
+
+    class concept conceptStyle
+    class approved approvedStyle
+    class planned plannedStyle
+    class active activeStyle
+    class reviewing reviewingStyle
+    class verifying verifyingStyle
+    class implemented implementedStyle
+    class ready readyStyle
+    class released releasedStyle
 ```
 
 ### Multi-Faceted Stage Meanings
@@ -97,7 +134,7 @@ Each stage represents multiple facets that apply simultaneously. A node can have
 ### Hold States (Temporary, Preserves Stage)
 
 ```mermaid
-flowchart LR
+flowchart TB
     root((No hold))
 
     broken[🔥 broken]
@@ -159,20 +196,39 @@ flowchart LR
 ### Disposition States (Terminal)
 
 ```mermaid
-stateDiagram-v2
-    state "Any Stage" as any
+flowchart TB
+    root((Not disposed))
 
-    any --> rejected: Not pursuing
-    any --> infeasible: Cannot build
-    any --> legacy: Superseded
-    any --> deprecated: No longer relevant
-    any --> archived: Preserved only
+    infeasible[🚫 infeasible]
+    infeasible_desc[Cannot be built]
 
-    rejected --> [*]
-    infeasible --> [*]
-    legacy --> [*]
-    deprecated --> [*]
-    archived --> [*]
+    rejected[❌ rejected]
+    rejected_desc[Explicitly declined]
+
+    duplicative[👯 duplicative]
+    duplicative_desc[Duplicate of another story]
+
+    deprecated[⚠️ deprecated]
+    deprecated_desc[No longer recommended]
+
+    legacy[🛑 legacy]
+    legacy_desc[Outdated or superseded]
+
+    archived[📦 archived]
+    archived_desc[Stored away for reference]
+
+    root --> infeasible --> infeasible_desc
+    root --> rejected --> rejected_desc
+    root --> duplicative --> duplicative_desc
+    root --> deprecated --> deprecated_desc
+    root --> legacy --> legacy_desc
+    root --> archived --> archived_desc
+
+    classDef notDisposed fill:#9900CC,stroke:#7700AA,color:#fff
+    classDef terminalStyle fill:#CC0000,stroke:#AA0000,color:#fff
+
+    class root notDisposed
+    class infeasible,infeasible_desc,rejected,rejected_desc,duplicative,duplicative_desc,deprecated,deprecated_desc,legacy,legacy_desc,archived,archived_desc terminalStyle
 ```
 
 ---

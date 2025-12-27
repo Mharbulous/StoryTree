@@ -61,8 +61,8 @@ STATUS_COLORS = {
     'queued': '#E8C200',       # RGB(232, 194, 0) - dark yellow
     'wishlisted': '#EAD000',   # RGB(234, 208, 0) - yellow (least urgent)
     'no hold': '#888888',      # Grey (no hold reason)
-    # Live status (final stage in color wheel progression)
-    'live': '#9900CC',         # Magenta - RGB(153, 0, 204) - 5.87:1 contrast
+    # Not disposed (no disposition set - story is still active)
+    'not disposed': '#9900CC',  # Magenta - RGB(153, 0, 204) - 5.87:1 contrast
 }
 
 # All possible statuses (22-status rainbow system - canonical order)
@@ -86,7 +86,7 @@ DISPOSITION_VALUES = {'rejected', 'infeasible', 'duplicative', 'legacy', 'deprec
 STAGE_ORDER = ['concept', 'approved', 'planned', 'active',
                'reviewing', 'verifying', 'implemented', 'ready', 'released']
 HOLD_REASON_ORDER = ['no hold', 'broken', 'conflicted', 'blocked', 'escalated', 'paused', 'polish', 'queued', 'wishlisted']
-DISPOSITION_ORDER = ['live', 'infeasible', 'rejected', 'duplicative', 'deprecated', 'legacy', 'archived']
+DISPOSITION_ORDER = ['not disposed', 'infeasible', 'rejected', 'duplicative', 'deprecated', 'legacy', 'archived']
 
 # Hold reason icons for visual indication in tree view
 HOLD_ICONS = {
@@ -2313,7 +2313,7 @@ class XstoryExplorer(QMainWindow):
         Within each category, the node matches if its field matches ANY checked option (OR logic).
         - Stage: node.stage must be in checked stages
         - Hold Status: node.hold_reason must be in checked holds, OR 'no hold' checked and no hold_reason
-        - Disposition: node.disposition must be in checked dispositions, OR 'live' checked and no disposition
+        - Disposition: node.disposition must be in checked dispositions, OR 'not disposed' checked and no disposition
         """
         # Collect checked statuses by category
         checked_stages = {s for s in STAGE_ORDER
@@ -2325,7 +2325,7 @@ class XstoryExplorer(QMainWindow):
 
         # Special filter flags
         show_no_hold = 'no hold' in checked_holds
-        show_live = 'live' in checked_disps
+        show_not_disposed = 'not disposed' in checked_disps
 
         def node_matches_filter(node):
             """Check if node matches the current filters (AND logic across categories)."""
@@ -2342,11 +2342,11 @@ class XstoryExplorer(QMainWindow):
             if not hold_ok:
                 return False
 
-            # Disposition check: node.disposition in checked dispositions, OR 'live' if no disposition
+            # Disposition check: node.disposition in checked dispositions, OR 'not disposed' if no disposition
             disp_ok = False
             if node.disposition and node.disposition in checked_disps:
                 disp_ok = True
-            elif show_live and not node.disposition:
+            elif show_not_disposed and not node.disposition:
                 disp_ok = True
             if not disp_ok:
                 return False
