@@ -2,7 +2,7 @@
 """
 Migration: Normalize Stage Hierarchy
 
-Enforces the multi-faceted stage rule from workflow-diagrams.md (lines 86-101):
+Enforces the multi-faceted stage rule from workflow-three-field-model.md:
 "A node cannot reach implemented until both its own work is complete AND
 all children have reached implemented or later."
 
