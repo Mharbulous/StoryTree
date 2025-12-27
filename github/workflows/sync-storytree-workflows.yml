@@ -1,15 +1,15 @@
-# Sync StoryTree Workflows
+# Sync StoryTree Components
 #
-# This workflow automatically syncs GitHub workflows from the .StoryTree submodule
-# to the project's .github/ directory.
+# This workflow automatically syncs all StoryTree components from the .StoryTree
+# submodule: workflows, actions, commands, skills, and scripts.
 #
 # Triggers:
 # 1. repository_dispatch from StoryTree's notify-dependents workflow (recommended)
 # 2. Push to main that modifies the submodule (fallback)
 # 3. Manual workflow_dispatch
 #
-# GitHub doesn't follow symlinks for workflows, so they must be copied.
-# This automation ensures workflows stay in sync without manual intervention.
+# Uses setup.py with --ci flag to copy all files (no symlinks in CI).
+# This automation ensures all components stay in sync without manual intervention.
 
 name: Sync StoryTree Workflows
 
@@ -50,11 +50,8 @@ jobs:
           cd ..
           echo "Submodule updated to: $(cd .StoryTree && git rev-parse HEAD)"
 
-      - name: Sync workflows from StoryTree
-        run: |
-          # Copy workflows and actions from submodule
-          cp -r .StoryTree/github/workflows/* .github/workflows/
-          cp -r .StoryTree/github/actions/* .github/actions/ 2>/dev/null || true
+      - name: Sync from StoryTree
+        run: python .StoryTree/src/setup.py install --ci --target .
 
       - name: Check for changes
         id: changes
