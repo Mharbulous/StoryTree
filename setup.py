@@ -393,13 +393,8 @@ def install_data_scripts(xstory_root: Path, target: Path, use_symlinks: bool) ->
                 copy_item(script, dest)
 
 
-def install_workflows(xstory_root: Path, target: Path, skip_self: bool = False) -> None:
-    """Install workflows to target/.github/workflows/ (always copy, never symlink)
-
-    Args:
-        skip_self: If True, skip sync-storytree-workflows.yml to avoid permission issues
-                   when running in CI (GitHub doesn't allow workflows to modify themselves)
-    """
+def install_workflows(xstory_root: Path, target: Path) -> None:
+    """Install workflows to target/.github/workflows/ (always copy, never symlink)"""
     src_dir = xstory_root / 'github' / 'workflows'
     dest_dir = target / '.github' / 'workflows'
     ensure_directory(dest_dir)
@@ -407,10 +402,6 @@ def install_workflows(xstory_root: Path, target: Path, skip_self: bool = False) 
     print("\nInstalling workflows (always copied, GitHub requirement)...")
     for wf in src_dir.iterdir():
         if wf.is_file() and wf.suffix in ('.yml', '.yaml'):
-            # Skip the sync workflow itself when running in CI to avoid permission issues
-            if skip_self and wf.name == 'sync-storytree-workflows.yml':
-                print(f"  Skipped: {wf.name} (self-update not allowed in CI)")
-                continue
             copy_item(wf, dest_dir / wf.name)
 
 
@@ -505,8 +496,7 @@ def cmd_install(args) -> None:
     install_commands(xstory_root, target, use_symlinks)
     install_scripts(xstory_root, target, use_symlinks)
     install_data_scripts(xstory_root, target, use_symlinks)
-    # In CI mode, skip syncing the sync workflow itself to avoid permission issues
-    install_workflows(xstory_root, target, skip_self=not use_symlinks)
+    install_workflows(xstory_root, target)
     install_actions(xstory_root, target)
 
     if args.init_db:

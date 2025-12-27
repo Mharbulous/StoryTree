@@ -10,6 +10,9 @@
 #
 # Uses setup.py with --ci flag to copy all files (no symlinks in CI).
 # This automation ensures all components stay in sync without manual intervention.
+#
+# IMPORTANT: Requires DEPENDENTS_PAT secret (PAT with 'workflow' scope)
+# to push changes to workflow files. GITHUB_TOKEN cannot modify workflows.
 
 name: Sync StoryTree Workflows
 
@@ -37,6 +40,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.DEPENDENTS_PAT }}
           submodules: recursive
           fetch-depth: 0
 
