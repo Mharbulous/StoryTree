@@ -14,18 +14,18 @@ This repository is designed to be installed as a **git submodule** in other proj
 
 ```bash
 # Install to a target project
-python setup.py install --target /path/to/project
+python src/setup.py install --target /path/to/project
 
 # Initialize empty story database
-python setup.py init-db --target /path/to/project
+python src/setup.py init-db --target /path/to/project
 
 # Sync workflows after StoryTree updates
-python setup.py sync-workflows --target /path/to/project
+python src/setup.py sync-workflows --target /path/to/project
 
 # Manage dependent projects
-python setup.py register --target /path/to/project --name ProjectName
-python setup.py list-dependents
-python setup.py update-all  # Sync workflows to all registered projects
+python src/setup.py register --target /path/to/project --name ProjectName
+python src/setup.py list-dependents
+python src/setup.py update-all  # Sync workflows to all registered projects
 ```
 
 ### Xstory GUI
@@ -52,7 +52,7 @@ python -m pytest gui/tests/ -v
 
 ### Directory Structure
 
-- `claude/` - Claude Code integration components
+- `.claude/` - Claude Code integration components
   - `skills/` - 10 Claude Code skills (story-tree, story-planning, story-execution, etc.)
   - `commands/` - 10 slash commands (ci-create-plan.md, write-story.md, ci-*.md, etc.)
   - `scripts/` - Helper Python scripts for story operations

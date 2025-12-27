@@ -12,16 +12,16 @@ CI mode (--ci or CI=true environment):
   - Copies all files (no symlinks)
 
 Usage:
-  python setup.py install --target /path/to/project
-  python setup.py install --target /path/to/project --ci
-  python setup.py sync-workflows --target /path/to/project
-  python setup.py init-db --target /path/to/project
+  python src/setup.py install --target /path/to/project
+  python src/setup.py install --target /path/to/project --ci
+  python src/setup.py sync-workflows --target /path/to/project
+  python src/setup.py init-db --target /path/to/project
 
 Dependent Management:
-  python setup.py register --target /path/to/project [--name ProjectName]
-  python setup.py unregister --target /path/to/project
-  python setup.py list-dependents
-  python setup.py update-all
+  python src/setup.py register --target /path/to/project [--name ProjectName]
+  python src/setup.py unregister --target /path/to/project
+  python src/setup.py list-dependents
+  python src/setup.py update-all
 """
 
 import argparse
@@ -51,7 +51,7 @@ def is_ci_mode(force_ci: bool = False) -> bool:
 
 def get_xstory_root() -> Path:
     """Get the root directory of the xstory installation."""
-    return Path(__file__).parent.resolve()
+    return Path(__file__).parent.parent.resolve()
 
 
 def get_dependents_file() -> Path:
@@ -517,7 +517,7 @@ def cmd_install(args) -> None:
     if use_symlinks:
         print("\nSymlinks created. Changes to StoryTree will reflect immediately.")
     else:
-        print("\nFiles copied. Run 'setup.py sync-workflows' after StoryTree updates.")
+        print("\nFiles copied. Run 'src/setup.py sync-workflows' after StoryTree updates.")
 
 
 def cmd_sync_workflows(args) -> None:
@@ -775,7 +775,7 @@ def cmd_diagnose(args) -> None:
             print(f"  {SYM_WARN} story-tree.db exists but may be corrupted: {e}")
     else:
         print(f"  {SYM_INFO} story-tree.db not initialized")
-        print("    Run: setup.py init-db --target ...")
+        print("    Run: src/setup.py init-db --target ...")
     print()
 
     # Summary
@@ -786,7 +786,7 @@ def cmd_diagnose(args) -> None:
         print(f"{SYM_ERR} Found {issues_found} issue(s)")
         print()
         print("To fix, run:")
-        print(f"  python setup.py install --target \"{target}\"")
+        print(f"  python src/setup.py install --target \"{target}\"")
 
 
 def cmd_register(args) -> None:
@@ -845,7 +845,7 @@ def cmd_list_dependents(args) -> None:
     if not dependents:
         print("No dependent projects registered.")
         print("\nRegister a project with:")
-        print("  python setup.py register --target /path/to/project")
+        print("  python src/setup.py register --target /path/to/project")
         return
 
     print(f"Registered StoryTree dependents ({len(dependents)}):")
@@ -865,7 +865,7 @@ def cmd_update_all(args) -> None:
     if not dependents:
         print("No dependent projects registered.")
         print("\nRegister a project with:")
-        print("  python setup.py register --target /path/to/project")
+        print("  python src/setup.py register --target /path/to/project")
         return
 
     print(f"Updating workflows for {len(dependents)} project(s)...")

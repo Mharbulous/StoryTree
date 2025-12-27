@@ -48,5 +48,5 @@ The standalone `C:/Users/Brahm/Git/StoryTree/` repo exists but should be avoided
 
 ## Not Relevant
 
-- `StoryTree/setup.py` - Only for `init-db`, not installation
+- `StoryTree/src/setup.py` - Only for `init-db`, not installation
 - Standalone `C:/Users/Brahm/Git/StoryTree/` - Use submodule instead

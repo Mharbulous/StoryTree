@@ -20,10 +20,10 @@ YourProject/
 ├── .StoryTree/             ← Git submodule (https://github.com/Mharbulous/StoryTree)
 ├── .claude/
 │   ├── skills/
-│   │   ├── story-tree/     ← Symlink → ../../.StoryTree/claude/skills/story-tree
+│   │   ├── story-tree/     ← Symlink → ../../.StoryTree/.claude/skills/story-tree
 │   │   └── ...
 │   ├── commands/
-│   │   └── *.md            ← Symlinks → ../../.StoryTree/claude/commands/*.md
+│   │   └── *.md            ← Symlinks → ../../.StoryTree/.claude/commands/*.md
 │   └── data/
 │       └── story-tree.db   ← Project-specific (NOT symlinked)
 └── .github/
@@ -36,7 +36,7 @@ YourProject/
 |----------|------|------|
 | **Git Submodule** | Portable, version-controlled, works in CI | Requires `--recurse-submodules` on clone |
 | ~~Absolute symlinks~~ | Simple | Breaks on other machines/CI |
-| ~~setup.py installer~~ | Flexible | Extra step, complex CI setup |
+| ~~src/setup.py installer~~ | Flexible | Extra step, complex CI setup |
 
 ### Requirements
 
@@ -85,9 +85,10 @@ Confirm all essential components are present:
 
 ```
 StoryTree/
-├── setup.py             # Optional installer script (for database init)
+├── src/
+│   └── setup.py         # Optional installer script (for database init)
 ├── README.md            # Project documentation
-├── claude/
+├── .claude/
 │   ├── skills/          # 10 skills
 │   ├── commands/        # 10 slash commands
 │   ├── scripts/         # Helper scripts
@@ -190,7 +191,7 @@ import os
 from pathlib import Path
 
 # Skills
-skills_src = Path('.StoryTree/claude/skills')
+skills_src = Path('.StoryTree/.claude/skills')
 skills_dst = Path('.claude/skills')
 for skill in ['code-sentinel', 'concept-vetting', 'goal-synthesis', 'prioritize-story-nodes',
               'story-arborist', 'story-building', 'story-execution',
@@ -201,7 +202,7 @@ for skill in ['code-sentinel', 'concept-vetting', 'goal-synthesis', 'prioritize-
     os.symlink(rel_path, dst, target_is_directory=True)
 
 # Commands
-cmds_src = Path('.StoryTree/claude/commands')
+cmds_src = Path('.StoryTree/.claude/commands')
 cmds_dst = Path('.claude/commands')
 for cmd in ['ci-decompose-plan.md', 'ci-execute-plan.md', 'ci-identify-plan.md',
             'ci-review-plan.md', 'generate-stories.md', 'plan-story.md',
@@ -212,7 +213,7 @@ for cmd in ['ci-decompose-plan.md', 'ci-execute-plan.md', 'ci-identify-plan.md',
     os.symlink(rel_path, dst)
 
 # Scripts
-scripts_src = Path('.StoryTree/claude/scripts')
+scripts_src = Path('.StoryTree/.claude/scripts')
 scripts_dst = Path('.claude/scripts')
 for script in ['generate_vision_doc.py', 'insert_story.py', 'prioritize_stories.py',
                'story_tree_helpers.py', 'story_workflow.py']:
@@ -222,7 +223,7 @@ for script in ['generate_vision_doc.py', 'insert_story.py', 'prioritize_stories.
     os.symlink(rel_path, dst)
 
 # Data scripts
-data_src = Path('.StoryTree/claude/data')
+data_src = Path('.StoryTree/.claude/data')
 data_dst = Path('.claude/data')
 for script in ['init_story_tree.py', 'insert_stories.py',
                'migrate_normalize_stage_hierarchy.py', 'verify_root.py']:
@@ -239,7 +240,7 @@ for script in ['init_story_tree.py', 'insert_stories.py',
 dir /AL .claude\skills
 
 # Should show:
-# <SYMLINKD>  story-tree [..\..\.StoryTree\claude\skills\story-tree]
+# <SYMLINKD>  story-tree [..\..\.StoryTree\.claude\skills\story-tree]
 ```
 
 ### 2.8 Test Local Functionality
@@ -351,7 +352,7 @@ cp .StoryTree/templates/story-tree.db.empty .claude/data/story-tree.db
 Or use the setup script:
 
 ```bash
-python .StoryTree/setup.py init-db --target .
+python .StoryTree/src/setup.py init-db --target .
 ```
 
 ### 5.4 Verify Installation
@@ -523,7 +524,7 @@ cp -r .claude.backup-YYYYMMDD .claude
 
 ## Notes
 
-- **Relative Symlinks**: All symlinks use relative paths (`../../.StoryTree/claude/...`) so they work on any machine after cloning with submodules.
+- **Relative Symlinks**: All symlinks use relative paths (`../../.StoryTree/.claude/...`) so they work on any machine after cloning with submodules.
 - **Symlink Bidirectionality**: Edits made through symlinked files modify StoryTree directly. This is intentional (improvements propagate everywhere) but requires awareness. Use `git diff` in StoryTree to review changes before committing.
 - **Git Submodule**: Always clone with `--recurse-submodules` or run `git submodule update --init` after cloning.
 - **GitHub Workflows**: Must be copied to `.github/workflows/` (GitHub doesn't follow symlinks).

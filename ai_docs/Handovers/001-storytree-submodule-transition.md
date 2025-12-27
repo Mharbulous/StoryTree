@@ -33,7 +33,7 @@
 
 2. **Absolute symlinks** - Work locally but break on other machines/CI. Use relative paths via `os.path.relpath()`.
 
-3. **setup.py installer** - Originally planned, but git submodule is cleaner. The setup.py still exists for `init-db` but isn't needed for installation.
+3. **src/setup.py installer** - Originally planned, but git submodule is cleaner. The src/setup.py still exists for `init-db` but isn't needed for installation.
 
 4. **Private submodule repo** - CI failed with "Repository not found" because GitHub Actions' GITHUB_TOKEN can't access private repos outside the current repo. **Solution:** Made StoryTree public.
 
@@ -45,9 +45,9 @@
 ```python
 import os
 from pathlib import Path
-src = Path('StoryTree/claude/skills/story-tree')
+src = Path('StoryTree/.claude/skills/story-tree')
 dst = Path('.claude/skills/story-tree')
-rel_path = os.path.relpath(src, dst.parent)  # ../../StoryTree/claude/skills/story-tree
+rel_path = os.path.relpath(src, dst.parent)  # ../../StoryTree/.claude/skills/story-tree
 os.symlink(rel_path, dst, target_is_directory=True)
 ```
 
@@ -56,7 +56,7 @@ os.symlink(rel_path, dst, target_is_directory=True)
 **Verify symlinks (Windows):**
 ```cmd
 dir /AL .claude\skills
-# Shows: <SYMLINKD> story-tree [..\..\StoryTree\claude\skills\story-tree]
+# Shows: <SYMLINKD> story-tree [..\..\StoryTree\.claude\skills\story-tree]
 ```
 
 ---
@@ -72,7 +72,7 @@ dir /AL .claude\skills
 
 ## Red Herrings
 
-- `StoryTree/setup.py` - Still exists but only needed for `init-db`, not for installation
+- `StoryTree/src/setup.py` - Still exists but only needed for `init-db`, not for installation
 - Old `StoryTree/` directory in SyncoPaid - Was tracked as regular files, now deleted and replaced with submodule
 - `xstory/` directory - May exist in old SyncoPaid, can be deleted in Phase 6
 
@@ -100,7 +100,7 @@ skills = ['code-sentinel', 'concept-vetting', 'goal-synthesis', 'prioritize-stor
           'story-arborist', 'story-building', 'story-execution',
           'story-planning', 'story-tree', 'story-verification']
 for skill in skills:
-    src = Path(f'StoryTree/claude/skills/{skill}')
+    src = Path(f'StoryTree/.claude/skills/{skill}')
     dst = Path(f'.claude/skills/{skill}')
     if dst.exists(): os.remove(dst)
     os.symlink(os.path.relpath(src, dst.parent), dst, target_is_directory=True)

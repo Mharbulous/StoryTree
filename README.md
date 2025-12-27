@@ -55,7 +55,7 @@ import os
 from pathlib import Path
 
 # Skills (10 total)
-skills_src = Path('.StoryTree/claude/skills')
+skills_src = Path('.StoryTree/.claude/skills')
 skills_dst = Path('.claude/skills')
 for skill in ['code-sentinel', 'concept-vetting', 'goal-synthesis', 'prioritize-story-nodes',
               'story-arborist', 'story-building', 'story-execution',
@@ -66,7 +66,7 @@ for skill in ['code-sentinel', 'concept-vetting', 'goal-synthesis', 'prioritize-
     os.symlink(rel_path, dst, target_is_directory=True)
 
 # Commands (10 total)
-cmds_src = Path('.StoryTree/claude/commands')
+cmds_src = Path('.StoryTree/.claude/commands')
 cmds_dst = Path('.claude/commands')
 for cmd in ['ci-decompose-plan.md', 'ci-execute-plan.md', 'ci-identify-plan.md',
             'ci-create-plan.md', 'ci-generate-concept.md', 'ci-review-plan.md',
@@ -77,7 +77,7 @@ for cmd in ['ci-decompose-plan.md', 'ci-execute-plan.md', 'ci-identify-plan.md',
     os.symlink(rel_path, dst)
 
 # Scripts (5 total)
-scripts_src = Path('.StoryTree/claude/scripts')
+scripts_src = Path('.StoryTree/.claude/scripts')
 scripts_dst = Path('.claude/scripts')
 for script in ['generate_vision_doc.py', 'insert_story.py', 'prioritize_stories.py',
                'story_tree_helpers.py', 'story_workflow.py']:
@@ -87,7 +87,7 @@ for script in ['generate_vision_doc.py', 'insert_story.py', 'prioritize_stories.
     os.symlink(rel_path, dst)
 
 # Data scripts (4 total)
-data_src = Path('.StoryTree/claude/data')
+data_src = Path('.StoryTree/.claude/data')
 data_dst = Path('.claude/data')
 for script in ['init_story_tree.py', 'insert_stories.py',
                'migrate_normalize_stage_hierarchy.py', 'verify_root.py']:
@@ -118,17 +118,17 @@ If you have multiple projects using StoryTree, you can register them for batch u
 
 ```bash
 # Register projects (one-time setup, run from StoryTree directory)
-python setup.py register --target /path/to/SyncoPaid --name SyncoPaid
-python setup.py register --target /path/to/Listbot --name Listbot
+python src/setup.py register --target /path/to/SyncoPaid --name SyncoPaid
+python src/setup.py register --target /path/to/Listbot --name Listbot
 
 # List registered projects
-python setup.py list-dependents
+python src/setup.py list-dependents
 
 # After pulling StoryTree updates, sync workflows to ALL projects
-python setup.py update-all
+python src/setup.py update-all
 
 # Remove a project from registry
-python setup.py unregister --target /path/to/Project
+python src/setup.py unregister --target /path/to/Project
 ```
 
 The `update-all` command copies workflows to all registered projects at once, then prompts you to commit the changes in each project.
@@ -139,10 +139,11 @@ The `update-all` command copies workflows to all registered projects at once, th
 StoryTree/
 ├── README.md
 ├── TRANSITION_PLAN.md       # Migration documentation
-├── setup.py                 # Installation & dependent management
+├── src/
+│   └── setup.py             # Installation & dependent management
 ├── ai_docs/
 │   └── Handovers/           # Development handover docs
-├── claude/
+├── .claude/
 │   ├── skills/              # Claude Code skills (10)
 │   │   ├── story-tree/      # Core tree operations
 │   │   ├── story-planning/  # Story planning workflow
@@ -192,15 +193,15 @@ YourProject/
 ├── .StoryTree/               ← Git submodule (hidden directory)
 ├── .claude/
 │   ├── skills/
-│   │   ├── story-tree/       ← Symlink → ../../.StoryTree/claude/skills/story-tree
+│   │   ├── story-tree/       ← Symlink → ../../.StoryTree/.claude/skills/story-tree
 │   │   └── ...               ← (other symlinked skills)
 │   ├── commands/
-│   │   └── *.md              ← Symlinks → ../../.StoryTree/claude/commands/*.md
+│   │   └── *.md              ← Symlinks → ../../.StoryTree/.claude/commands/*.md
 │   ├── scripts/
-│   │   └── *.py              ← Symlinks → ../../.StoryTree/claude/scripts/*.py
+│   │   └── *.py              ← Symlinks → ../../.StoryTree/.claude/scripts/*.py
 │   └── data/
 │       ├── story-tree.db     ← Project-specific (NOT symlinked)
-│       └── *.py              ← Symlinks → ../../.StoryTree/claude/data/*.py
+│       └── *.py              ← Symlinks → ../../.StoryTree/.claude/data/*.py
 └── .github/
     └── workflows/            ← Copied from StoryTree (GitHub requires actual files)
 ```
@@ -227,7 +228,7 @@ Key tables:
 - `story_commits`: Commit tracking per story
 - `vetting_decisions`: Entity resolution cache
 
-See `claude/skills/story-tree/references/schema.sql` for full schema.
+See `.claude/skills/story-tree/references/schema.sql` for full schema.
 
 ## Workflow Stages
 

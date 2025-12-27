@@ -38,7 +38,7 @@ StoryTree submodule transition complete for both SyncoPaid (PR #407) and Listbot
 
 ## Red Herrings
 
-- `StoryTree/setup.py` - Only for `init-db`, not installation
+- `StoryTree/src/setup.py` - Only for `init-db`, not installation
 - Old embedded `StoryTree/` files in SyncoPaid - Replaced by submodule, gone now
 
 ## Failed Approaches (don't repeat)
