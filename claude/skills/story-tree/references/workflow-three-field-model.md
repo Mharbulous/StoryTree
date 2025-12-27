@@ -187,14 +187,31 @@ Holds gate progression within each stage. Clearing all holds triggers automatic 
 ```mermaid
 flowchart TB
     subgraph concept_stage [concept]
-        c_q[📋 queued]
+        c_refine((🤖 AI refines))
+        c_clear[no hold]
+        c_ai((🤖 AI review))
+        c_conf[⚔ conflicted]
+        c_dup[👯 duplicative]
+        c_del([deleted])
         c_e[⏳ escalated]
-        c_h[other holds]
-        c_clear((no hold))
-        c_q --> c_e
-        c_e --> c_clear
-        c_q --> c_h
-        c_h --> c_clear
+        c_human((👤 Human review))
+        c_paused[⏸ paused]
+        c_polish[💎 polish]
+        c_wish[💭 wishlisted]
+        c_hold[on hold]
+        c_rej[❌ rejected]
+        c_disposed([disposed])
+
+        c_refine --> c_clear
+        c_clear --> c_ai
+        c_ai --> c_conf --> c_del
+        c_ai --> c_dup --> c_del
+        c_ai --> c_e --> c_human
+        c_human --> c_paused --> c_hold
+        c_human --> c_polish --> c_refine
+        c_human --> c_wish --> c_hold
+        c_human --> c_rej --> c_disposed
+        c_human -->|approved| p_q
     end
 
     subgraph planning_stage [planning]
@@ -255,7 +272,6 @@ flowchart TB
         rel[✓ shipped]
     end
 
-    c_clear -->|auto-queue| p_q
     p_clear -->|auto-queue| e_q
     e_clear -->|auto-queue| r_q
     r_clear -->|auto-queue| v_q
