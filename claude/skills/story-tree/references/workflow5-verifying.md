@@ -19,7 +19,7 @@ flowchart TB
         v_q --> v_clear
     end
 
-    v_clear -->|auto-queue| implemented[implemented: queued]
+    v_clear -->|auto-queue| implemented[implemented: no hold]
 
     classDef reviewingBox fill:#0099CC,stroke:#007AA3,color:#fff
     classDef verifyingBox fill:#0066CC,stroke:#0052A3,color:#fff

@@ -19,7 +19,7 @@ flowchart TB
         i_q --> i_clear
     end
 
-    i_clear -->|auto-queue| ready[ready: queued]
+    i_clear -->|auto-queue| ready[ready: no hold]
 
     classDef verifyingBox fill:#0066CC,stroke:#0052A3,color:#fff
     classDef implementedBox fill:#0033CC,stroke:#0029A3,color:#fff

@@ -38,7 +38,7 @@ Stories progress through stages, with holds and dispositions as orthogonal state
 | **⏳ escalated** | Requires human decision |
 | **⏸ paused** | Intentionally stopped (not blocked by external factors) |
 | **💎 polish** | Minor refinements before progressing |
-| **📋 queued** | Awaiting automated processing |
+| **📋 queued** | Processing delayed pending completion of prerequisite steps |
 | **💭 wishlisted** | Low priority, indefinite deferral |
 
 ---

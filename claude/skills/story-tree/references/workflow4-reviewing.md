@@ -19,7 +19,7 @@ flowchart TB
         r_q --> r_clear
     end
 
-    r_clear -->|auto-queue| verifying[verifying: queued]
+    r_clear -->|auto-queue| verifying[verifying: no hold]
 
     classDef executingBox fill:#00CCCC,stroke:#00A3A3,color:#fff
     classDef reviewingBox fill:#0099CC,stroke:#007AA3,color:#fff

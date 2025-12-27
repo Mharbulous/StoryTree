@@ -35,7 +35,7 @@ flowchart TB
         c_human --> c_rej --> c_disposed
     end
 
-    c_human -->|approved| planning[planning: queued]
+    c_human -->|approved| planning[planning: no hold]
 
     classDef conceptBox fill:#66CC00,stroke:#52A300,color:#fff
     classDef planningBox fill:#00CC66,stroke:#00A352,color:#fff

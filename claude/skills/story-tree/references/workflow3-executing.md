@@ -19,7 +19,7 @@ flowchart TB
         e_q --> e_clear
     end
 
-    e_clear -->|auto-queue| reviewing[reviewing: queued]
+    e_clear -->|auto-queue| reviewing[reviewing: no hold]
 
     classDef planningBox fill:#00CC66,stroke:#00A352,color:#fff
     classDef executingBox fill:#00CCCC,stroke:#00A3A3,color:#fff
