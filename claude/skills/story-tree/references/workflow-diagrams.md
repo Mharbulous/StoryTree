@@ -53,14 +53,11 @@ flowchart TB
     concept[concept]
     concept_desc[New idea proposed]
 
-    approved[approved]
-    approved_desc[Ready for own implementation planning; ready to receive child concept proposals]
+    planning[planning]
+    planning_desc[Implementation being planned; dependencies being verified]
 
-    planned[planned]
-    planned_desc[Own implementation planned; dependencies verified; children have been approved]
-
-    active[active]
-    active_desc[Own code in progress; children's code in progress]
+    executing[executing]
+    executing_desc[Own code in progress; children's code in progress]
 
     reviewing[reviewing]
     reviewing_desc[Own code under review; reviewing child code]
@@ -78,9 +75,8 @@ flowchart TB
     released_desc[Shipped]
 
     root --> concept --> concept_desc
-    root --> approved --> approved_desc
-    root --> planned --> planned_desc
-    root --> active --> active_desc
+    root --> planning --> planning_desc
+    root --> executing --> executing_desc
     root --> reviewing --> reviewing_desc
     root --> verifying --> verifying_desc
     root --> implemented --> implemented_desc
@@ -89,20 +85,18 @@ flowchart TB
 
     classDef rootStyle fill:#888888,stroke:#666,color:#fff
     classDef conceptStyle fill:#66CC00,stroke:#52A300,color:#fff
-    classDef approvedStyle fill:#00CC33,stroke:#00A329,color:#fff
-    classDef plannedStyle fill:#00CC99,stroke:#00A37A,color:#fff
-    classDef activeStyle fill:#0099CC,stroke:#007AA3,color:#fff
-    classDef reviewingStyle fill:#0066CC,stroke:#0052A3,color:#fff
-    classDef verifyingStyle fill:#0033CC,stroke:#0029A3,color:#fff
-    classDef implementedStyle fill:#0000CC,stroke:#0000A3,color:#fff
-    classDef readyStyle fill:#3300CC,stroke:#2900A3,color:#fff
-    classDef releasedStyle fill:#6600CC,stroke:#5200A3,color:#fff
+    classDef planningStyle fill:#00CC66,stroke:#00A352,color:#fff
+    classDef executingStyle fill:#00CCCC,stroke:#00A3A3,color:#fff
+    classDef reviewingStyle fill:#0099CC,stroke:#007AA3,color:#fff
+    classDef verifyingStyle fill:#0066CC,stroke:#0052A3,color:#fff
+    classDef implementedStyle fill:#0033CC,stroke:#0029A3,color:#fff
+    classDef readyStyle fill:#0000CC,stroke:#0000A3,color:#fff
+    classDef releasedStyle fill:#3300CC,stroke:#2900A3,color:#fff
 
     class root rootStyle
     class concept conceptStyle
-    class approved approvedStyle
-    class planned plannedStyle
-    class active activeStyle
+    class planning planningStyle
+    class executing executingStyle
     class reviewing reviewingStyle
     class verifying verifyingStyle
     class implemented implementedStyle
@@ -212,45 +206,109 @@ flowchart TB
 
 ### Stage Transitions
 
+Holds gate progression within each stage. Clearing all holds triggers automatic transition to the next stage's queue.
+
 ```mermaid
-sequenceDiagram
-    box rgb(102,204,0) concept
-        participant concept
-    end
-    box rgb(0,204,51) approved
-        participant approved
-    end
-    box rgb(0,204,153) planned
-        participant planned
-    end
-    box rgb(0,153,204) active
-        participant active
-    end
-    box rgb(0,102,204) reviewing
-        participant reviewing
-    end
-    box rgb(0,51,204) verifying
-        participant verifying
-    end
-    box rgb(0,0,204) implemented
-        participant implemented
-    end
-    box rgb(51,0,204) ready
-        participant ready
-    end
-    box rgb(102,0,204) released
-        participant released
+flowchart LR
+    subgraph concept_stage [concept]
+        c_q[📋 queued]
+        c_e[⏳ escalated]
+        c_h[other holds]
+        c_clear((no hold))
+        c_q --> c_e
+        c_e --> c_clear
+        c_q --> c_h
+        c_h --> c_clear
     end
 
-    concept->>approved: Human approves
-    approved->>planned: Plan created
-    planned->>active: Work begins
-    active->>reviewing: Code complete
-    reviewing->>verifying: Review passed
-    verifying->>implemented: Verification passed
-    implemented->>ready: Fully tested
-    ready->>released: Shipped
+    subgraph planning_stage [planning]
+        p_q[📋 queued]
+        p_h[holds]
+        p_clear((no hold))
+        p_q --> p_h
+        p_h --> p_clear
+        p_q --> p_clear
+    end
+
+    subgraph executing_stage [executing]
+        e_q[📋 queued]
+        e_h[holds]
+        e_clear((no hold))
+        e_q --> e_h
+        e_h --> e_clear
+        e_q --> e_clear
+    end
+
+    subgraph review_stage [reviewing]
+        r_q[📋 queued]
+        r_h[holds]
+        r_clear((no hold))
+        r_q --> r_h
+        r_h --> r_clear
+        r_q --> r_clear
+    end
+
+    subgraph verify_stage [verifying]
+        v_q[📋 queued]
+        v_h[holds]
+        v_clear((no hold))
+        v_q --> v_h
+        v_h --> v_clear
+        v_q --> v_clear
+    end
+
+    subgraph impl_stage [implemented]
+        i_q[📋 queued]
+        i_h[holds]
+        i_clear((no hold))
+        i_q --> i_h
+        i_h --> i_clear
+        i_q --> i_clear
+    end
+
+    subgraph ready_stage [ready]
+        rd_q[📋 queued]
+        rd_h[holds]
+        rd_clear((no hold))
+        rd_q --> rd_h
+        rd_h --> rd_clear
+        rd_q --> rd_clear
+    end
+
+    subgraph released_stage [released]
+        rel[✓ shipped]
+    end
+
+    c_clear -->|auto-queue| p_q
+    p_clear -->|auto-queue| e_q
+    e_clear -->|auto-queue| r_q
+    r_clear -->|auto-queue| v_q
+    v_clear -->|auto-queue| i_q
+    i_clear -->|auto-queue| rd_q
+    rd_clear -->|auto-queue| rel
+
+    classDef conceptBox fill:#66CC00,stroke:#52A300,color:#fff
+    classDef planningBox fill:#00CC66,stroke:#00A352,color:#fff
+    classDef executingBox fill:#00CCCC,stroke:#00A3A3,color:#fff
+    classDef reviewingBox fill:#0099CC,stroke:#007AA3,color:#fff
+    classDef verifyingBox fill:#0066CC,stroke:#0052A3,color:#fff
+    classDef implementedBox fill:#0033CC,stroke:#0029A3,color:#fff
+    classDef readyBox fill:#0000CC,stroke:#0000A3,color:#fff
+    classDef releasedBox fill:#3300CC,stroke:#2900A3,color:#fff
+    classDef clearNode fill:#90EE90,stroke:#228B22,color:#000
+
+    class concept_stage conceptBox
+    class planning_stage planningBox
+    class executing_stage executingBox
+    class review_stage reviewingBox
+    class verify_stage verifyingBox
+    class impl_stage implementedBox
+    class ready_stage readyBox
+    class released_stage releasedBox
+    class c_clear,p_clear,e_clear,r_clear,v_clear,i_clear,rd_clear clearNode
 ```
+
+**Key principle:** "No hold" in any stage = ready to transition to the next stage's queue. The hold system is the universal gating mechanism.
 
 ---
 
