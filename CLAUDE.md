@@ -66,16 +66,20 @@ Components are organized based on their usage scope:
 
 ### Repo-Agnostic vs Repo-Specific Files
 
-Within shared components, distinguish between:
+| File Type | Location | Examples |
+|-----------|----------|----------|
+| **Repo-agnostic** | `claude/`, `github/` (source of truth) | `SKILL.md`, `schema.sql`, command templates, workflows |
+| **Repo-specific** | `.claude/`, `.github/` only (not exported) | `file-inventory.json`, `story-tree.db`, `settings.local.json` |
 
-| File Type | Symlinked? | Examples |
-|-----------|------------|----------|
-| **Repo-agnostic** | Yes (symlink to source) | `SKILL.md`, command templates, workflow definitions |
-| **Repo-specific** | No (unique per repo) | `file-inventory.json`, codebase analysis, project config |
+**Rule:** If StoryTree uses a repo-agnostic file, symlink from `.claude/`/`.github/` → `claude/`/`github/`.
 
 **Example:** For the `streamline` skill:
-- `SKILL.md` → Symlinked (same instructions for all repos)
-- `references/file-inventory.json` → Unique copy (specific to each repo's codebase)
+```
+claude/skills/streamline/SKILL.md              # Agnostic (source)
+.claude/skills/streamline/SKILL.md             # Symlink → ../../claude/...
+.claude/skills/streamline/references/
+    file-inventory.json                        # Repo-specific (original, not in claude/)
+```
 
 ### Directory Structure
 
