@@ -1,1 +1,1 @@
-Read and execute `.claude/skills/streamline/SKILL.md` with arguments: `$ARGUMENTS`
+../../claude/commands/streamline.md
