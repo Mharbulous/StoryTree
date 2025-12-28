@@ -151,6 +151,17 @@ Components are organized by their usage scope using a dot-prefix convention:
 - Dependent repos get components from `claude/` and `github/` via symlinks or copies
 - To share a component with dependents, place it in `claude/` or `github/` and optionally symlink from `.claude/` or `.github/` if StoryTree also uses it
 
+**Repo-agnostic vs repo-specific files:**
+
+Within shared components, some files are identical across all repos (symlinked), while others are unique to each repo (copied):
+
+| File Type | Symlinked? | Examples |
+|-----------|------------|----------|
+| **Repo-agnostic** | Yes | `SKILL.md`, command templates, workflow definitions |
+| **Repo-specific** | No | `file-inventory.json`, codebase analysis, project config |
+
+Example: For a skill like `streamline`, the `SKILL.md` is symlinked (same instructions everywhere), but `references/file-inventory.json` is a unique copy (specific to each repo's codebase).
+
 ## Directory Structure
 
 ```

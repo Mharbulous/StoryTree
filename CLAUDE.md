@@ -64,6 +64,19 @@ Components are organized based on their usage scope:
 
 **Key principle:** The dot-prefixed directories (`.claude/`, `.github/`) are what Claude Code and GitHub Actions read. The non-dot directories (`claude/`, `github/`) contain exportable components for dependent repos.
 
+### Repo-Agnostic vs Repo-Specific Files
+
+Within shared components, distinguish between:
+
+| File Type | Symlinked? | Examples |
+|-----------|------------|----------|
+| **Repo-agnostic** | Yes (symlink to source) | `SKILL.md`, command templates, workflow definitions |
+| **Repo-specific** | No (unique per repo) | `file-inventory.json`, codebase analysis, project config |
+
+**Example:** For the `streamline` skill:
+- `SKILL.md` → Symlinked (same instructions for all repos)
+- `references/file-inventory.json` → Unique copy (specific to each repo's codebase)
+
 ### Directory Structure
 
 - `.claude/` - Claude Code components **active in StoryTree**
